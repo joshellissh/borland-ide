@@ -1,0 +1,23 @@
+body {
+    margin: 0;
+    padding: 0;
+    cursor: none;
+    overflow: hidden;
+    background-color: black;
+}
+
+#root {
+    font-family: "More Perfect DOS", monospace;
+}
+.bg-grey {
+    background-color: #a0a0a0;
+}
+
+.font-red {
+    color: #a40604;
+}
+@font-face {
+    font-family: "More Perfect DOS";
+    src: url("MorePerfectDOSVGA.ttf");
+    size-adjust: 105%;
+}

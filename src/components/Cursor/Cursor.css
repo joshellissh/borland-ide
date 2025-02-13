@@ -1,0 +1,4 @@
+.cursor {
+    position: absolute;
+    mix-blend-mode: difference;
+}

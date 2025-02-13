@@ -1,0 +1,5 @@
+.App {
+  background-image: url('/background_tile.png');
+  background-repeat: repeat;
+  position: absolute;
+}

@@ -1,21 +1,35 @@
 import './App.css'
-import {TopMenu} from "./components/TopMenu/TopMenu.tsx";
-import {useEffect, useState} from "react";
-import {debugLog} from "./components/helpers/logger.ts";
+import {TopBar} from "./components/TopBar/TopBar.tsx";
+import {useEffect} from "react";
+import {debugLog} from "./logger.ts";
 import {Cursor} from "./components/Cursor/Cursor.tsx";
+import {BottomBar} from "./components/BottomBar/BottomBar.tsx";
+import Documents from "./components/Documents/Documents.tsx";
+import {useAppDispatch, useAppSelector} from "./hooks.ts";
+import {
+  selectBlockSize,
+  selectCols,
+  selectDimensions,
+  selectLeftOffset, selectRows,
+  setBlockSize,
+  setDimensions,
+  setLeftOffset
+} from "./appSlice.ts";
 
 function App() {
   const debug = true;
   const drawGrid = false;
-
-  const [dimensions, setDimensions] = useState({ width: 0, height: 0});
-  const [blockRes, setBlockRes] = useState({ width: 0, height: 0});
-  const [offset, setOffset] = useState(0);
-
-  const cols = 80;
-  const rows = 25;
   const aspectRatio = 1.6;
 
+  const dispatch = useAppDispatch();
+  const blockSize = useAppSelector(selectBlockSize);
+  const leftOffset = useAppSelector(selectLeftOffset);
+  const dimensions = useAppSelector(selectDimensions);
+  const cols = useAppSelector(selectCols);
+  const rows = useAppSelector(selectRows);
+
+
+  // Updates app bounds, position, etc.
   function handleResize() {
     const w = document.documentElement.clientWidth;
     const h = document.documentElement.clientHeight;
@@ -38,29 +52,23 @@ function App() {
 
     const leftOffset = (w / 2) - (adjustedWidth / 2);
 
-    setDimensions({ width: adjustedWidth, height: adjustedHeight });
-    setBlockRes({ width: blockW, height: blockH });
-    setOffset(leftOffset);
-    document.getElementById("App")!.style.backgroundSize = String(blockW / 8) + "%";
+    dispatch(setDimensions({ width: adjustedWidth, height: adjustedHeight }));
+    dispatch(setBlockSize({ width: blockW, height: blockH }));
+    dispatch(setLeftOffset(leftOffset));
+    document.getElementById("App")!.style.backgroundSize = blockW + "px";
+    document.getElementById("App")!.style.fontSize = blockH + "px";
 
     debugLog(debug, "Set new state to: \n" +
         "- w,h: " + adjustedWidth + "," + adjustedHeight + "\n" +
         "- block res: " + blockW + "," + blockH + "\n" +
         "- offset: " + leftOffset
     );
-
-    return {
-      dw: w,
-      dh: h,
-      bw: blockW,
-      bh: blockH,
-      offset: leftOffset
-    };
   }
 
-  // Unfortunately we need to rerender all components when the window size changes to redraw the UI
+
   useEffect(() => {
-    const vars = handleResize();
+    // Unfortunately we need to rerender all components when the window size changes to redraw the UI
+    handleResize();
     window.addEventListener("resize", handleResize);
 
     if (drawGrid) {
@@ -68,10 +76,10 @@ function App() {
         for (let y = 0; y < 25; y++) {
           const elem = document.createElement("div");
           elem.style.position = "absolute";
-          elem.style.left = (x * vars.bw) + "px";
-          elem.style.top = (y * vars.bh) + "px";
-          elem.style.width = vars.bw + "px";
-          elem.style.height = vars.bh + "px";
+          elem.style.left = leftOffset + (x * blockSize.width) + "px";
+          elem.style.top = (y * blockSize.height) + "px";
+          elem.style.width = blockSize.width + "px";
+          elem.style.height = blockSize.height + "px";
           elem.style.boxSizing = "border-box";
           elem.style.border = "solid 1px red";
           document.body.appendChild(elem);
@@ -89,21 +97,15 @@ function App() {
         style={{
           width: dimensions.width,
           height: dimensions.height,
-          left: offset
+          left: leftOffset
         }}
         className="App"
         id="App"
     >
-      <TopMenu
-          blockRes={blockRes}
-      />
-      <Cursor
-          dimensions={dimensions}
-          blockRes={blockRes}
-          offset={offset}
-          cols={cols}
-          rows={rows}
-      />
+      <TopBar />
+      <BottomBar cols={cols} rows={rows} />
+      <Documents />
+      <Cursor />
     </div>
   )
 }

@@ -13,11 +13,34 @@ body {
     background-color: #a0a0a0;
 }
 
+.bg-blue {
+    background-color: #000fa3;
+}
+
+.bg-teal {
+    background-color: #4ba7a9;
+}
+
+.bg-dark-green {
+    background-color: #4ca630;
+}
+
+.font-yellow {
+    color: #fffe73;
+}
+
+.font-blue {
+    color: #000fa3;
+}
+
+.font-bright-green {
+    color: #89fa6e;
+}
+
 .font-red {
     color: #a40604;
 }
 @font-face {
     font-family: "More Perfect DOS";
-    src: url("MorePerfectDOSVGA.ttf");
-    size-adjust: 105%;
+    src: url("/borland-ide/MorePerfectDOSVGA.ttf");
 }

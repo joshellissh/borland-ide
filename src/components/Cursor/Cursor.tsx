@@ -1,26 +1,26 @@
-import {useEffect, useState} from "react";
+import {useEffect} from "react";
 import "./Cursor.css"
-import {BlockRes, Dimensions} from "../../types.ts";
+import {useAppDispatch, useAppSelector} from "../../hooks.ts";
+import {selectPosition, setPosition} from "./cursorSlice.ts";
+import {selectBlockSize, selectCols, selectDimensions, selectLeftOffset, selectRows} from "../../appSlice.ts";
 
-interface CursorProps {
-    blockRes: BlockRes;
-    dimensions: Dimensions;
-    offset: number;
-    cols: number;
-    rows: number;
-}
-
-export function Cursor({blockRes, dimensions, offset, cols, rows}: CursorProps) {
-    const [position, setPosition] = useState({x: 0, y: 0});
+export function Cursor() {
+    const dispatch = useAppDispatch();
+    const cursorPosition = useAppSelector(selectPosition);
+    const dimensions = useAppSelector(selectDimensions);
+    const blockSize = useAppSelector(selectBlockSize);
+    const cols = useAppSelector(selectCols);
+    const rows = useAppSelector(selectRows);
+    const leftOffset = useAppSelector(selectLeftOffset);
 
     useEffect(() => {
         document.addEventListener('mousemove', function(event) {
-            if (dimensions.width == 0 || blockRes.width == 0 || dimensions.height == 0 || blockRes.height == 0) {
+            if (dimensions.width == 0 || blockSize.width == 0 || dimensions.height == 0 || blockSize.height == 0) {
                 return;
             }
 
-            const blockPosX = Math.floor((event.clientX - offset) / blockRes.width);
-            const blockPosY = Math.floor(event.clientY / blockRes.height);
+            const blockPosX = Math.floor((event.clientX - leftOffset) / blockSize.width);
+            const blockPosY = Math.floor(event.clientY / blockSize.height);
 
             if (
                 blockPosX < 0 || blockPosY < 0 ||
@@ -28,20 +28,17 @@ export function Cursor({blockRes, dimensions, offset, cols, rows}: CursorProps) 
                 return;
             }
 
-            const xPos = blockPosX * blockRes.width;
-            const yPos = blockPosY * blockRes.height;
-
-            setPosition({x: xPos, y: yPos});
+            dispatch(setPosition({x: blockPosX, y: blockPosY}));
         });
-    }, [blockRes, dimensions]);
+    }, [blockSize, dimensions]);
 
     return <div
         className="cursor bg-grey"
         style={{
-            left: position.x,
-            top: position.y,
-            width: blockRes.width,
-            height: blockRes.height
+            left: cursorPosition.x * blockSize.width,
+            top: cursorPosition.y * blockSize.height,
+            width: blockSize.width,
+            height: blockSize.height
         }}
     ></div>
 }

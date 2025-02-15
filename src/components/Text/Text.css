@@ -1,4 +1,5 @@
-.top-menu-char-block {
+.char-block {
     display: inline-block;
     position: relative;
+    overflow: hidden;
 }

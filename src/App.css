@@ -1,5 +1,6 @@
 .App {
-  background-image: url('/background_tile.png');
+  background-image: url('/borland-ide/background_tile.png');
   background-repeat: repeat;
   position: absolute;
+  -webkit-user-select: none;
 }

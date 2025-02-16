@@ -17,7 +17,6 @@ import {
 } from "./appSlice.ts";
 
 function App() {
-  const debug = true;
   const drawGrid = false;
   const aspectRatio = 1.6;
 
@@ -58,7 +57,7 @@ function App() {
     document.getElementById("App")!.style.backgroundSize = blockW + "px";
     document.getElementById("App")!.style.fontSize = blockH + "px";
 
-    debugLog(debug, "Set new state to: \n" +
+    debugLog("Set new state to: \n" +
         "- w,h: " + adjustedWidth + "," + adjustedHeight + "\n" +
         "- block res: " + blockW + "," + blockH + "\n" +
         "- offset: " + leftOffset
@@ -67,6 +66,8 @@ function App() {
 
 
   useEffect(() => {
+    debugLog("useEffect called in App");
+
     // Unfortunately we need to rerender all components when the window size changes to redraw the UI
     handleResize();
     window.addEventListener("resize", handleResize);
@@ -91,6 +92,7 @@ function App() {
       window.removeEventListener('resize', handleResize);
     };
   }, []);
+
 
   return (
     <div

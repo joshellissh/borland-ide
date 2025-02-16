@@ -5,6 +5,9 @@ import {Caret} from "../../Caret/Caret.tsx";
 import {useAppSelector} from "../../../hooks.ts";
 import {selectBlockSize, selectCols, selectRows} from "../../../appSlice.ts";
 import {drawBorders} from "./borders.tsx";
+import {debugLog} from "../../../logger.ts";
+import {useDispatch} from "react-redux";
+import {closeDocument} from "../documentsSlice.ts";
 
 interface DocumentProps {
     docInfo: DocumentInfo;
@@ -18,12 +21,13 @@ export function Document({docInfo}: DocumentProps) {
     const appRows = useAppSelector(selectRows);
     const [caretPos, setCaretPos] = useState({x:0, y:0});
     const [caretVisible, ] = useState(true);
+    const dispatch = useDispatch();
 
     // This prevents our component from rerendering when the mouse moves
     // But still allows us access to the cursor position
     const cursorPosRef = useRef<XY>({x: 0, y: 0});
     useAppSelector(
-        (state) => state.cursor.position,
+        (state) => state.cursor.livePosition,
         (_, b) => {
             cursorPosRef.current = b;
             // Prevent rerender
@@ -56,6 +60,13 @@ export function Document({docInfo}: DocumentProps) {
         const cx = cursorPosRef.current.x;
         const cy = cursorPosRef.current.y;
 
+        // Check if document buttons are clicked
+        if (left + cx == 3 && top + cy == 1) {
+            debugLog("Close document " + docInfo.id);
+            dispatch(closeDocument(docInfo.id));
+            return;
+        }
+
         if (cx < left + 1 || cx > cols - left - 2) {
             return;
         }
@@ -68,6 +79,8 @@ export function Document({docInfo}: DocumentProps) {
     }
 
     useEffect(() => {
+        debugLog("useEffect called in Document");
+
         // Set initial caret position to 1,1 in document
         setCaretPos({
            x: left + 1,

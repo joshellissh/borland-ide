@@ -3,6 +3,7 @@ import {XY} from "../../types.ts";
 import {useEffect, useState} from "react";
 import {useAppSelector} from "../../hooks.ts";
 import {selectBlockSize} from "../../appSlice.ts";
+import {debugLog} from "../../logger.ts";
 
 interface CaretProps {
     pos: XY;
@@ -19,6 +20,8 @@ export function Caret({pos}: CaretProps) {
     }
 
     useEffect(() => {
+        debugLog("useEffect called in Caret");
+
         const intervalId = setInterval(() => blinkCaret(), 150);
         return () => {
             clearInterval(intervalId);

@@ -1,4 +1,4 @@
-import { createSlice } from '@reduxjs/toolkit'
+import {createSlice, PayloadAction} from '@reduxjs/toolkit'
 import {DocumentInfo} from "../../types.ts";
 import {RootState} from "../../store.ts";
 
@@ -38,11 +38,14 @@ export const documentsSlice = createSlice({
             );
             state.activeDocument = state.documentNumber;
         },
+        closeDocument: (state, payload: PayloadAction<number>) => {
+            state.documents.delete(payload.payload);
+        },
     }
 });
 
 export const selectActiveDocument = (state: RootState) => state.documents.activeDocument;
 export const selectDocuments = (state: RootState) => state.documents.documents;
 
-export const { newDocument } = documentsSlice.actions;
+export const { newDocument, closeDocument } = documentsSlice.actions;
 export default documentsSlice.reducer;

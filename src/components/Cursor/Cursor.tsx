@@ -1,12 +1,12 @@
 import {useEffect} from "react";
 import "./Cursor.css"
 import {useAppDispatch, useAppSelector} from "../../hooks.ts";
-import {selectPosition, setPosition} from "./cursorSlice.ts";
+import {selectLivePosition, setLivePosition} from "./cursorSlice.ts";
 import {selectBlockSize, selectCols, selectDimensions, selectLeftOffset, selectRows} from "../../appSlice.ts";
 
 export function Cursor() {
     const dispatch = useAppDispatch();
-    const cursorPosition = useAppSelector(selectPosition);
+    const cursorPosition = useAppSelector(selectLivePosition);
     const dimensions = useAppSelector(selectDimensions);
     const blockSize = useAppSelector(selectBlockSize);
     const cols = useAppSelector(selectCols);
@@ -28,7 +28,7 @@ export function Cursor() {
                 return;
             }
 
-            dispatch(setPosition({x: blockPosX, y: blockPosY}));
+            dispatch(setLivePosition({x: blockPosX, y: blockPosY}));
         });
     }, [blockSize, dimensions]);
 

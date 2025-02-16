@@ -3,16 +3,18 @@ import {Dimensions} from "./types.ts";
 import {RootState} from "./store.ts";
 
 export interface AppState {
-    cols: number; // Width of app in blocks
     blockSize: Dimensions; // Width and height of "block" in pixels
+    cols: number; // Width of app in blocks
+    debug: boolean; // Run in debug mode
     dimensions: Dimensions; // Width and height of app screen in pixels
     leftOffset: number; // App offset from left edge of document in pixels
     rows: number; // Height of app in blocks
 }
 
 const initialState: AppState = {
-    cols: 80,
     blockSize: { width: 0, height: 0 },
+    cols: 80,
+    debug: true,
     dimensions: { width: 0, height: 0 },
     leftOffset: 0,
     rows: 25,
@@ -34,8 +36,9 @@ export const appSlice = createSlice({
     }
 });
 
-export const selectCols = (state: RootState) => state.app.cols;
 export const selectBlockSize = (state: RootState) => state.app.blockSize;
+export const selectCols = (state: RootState) => state.app.cols;
+export const selectDebug = (state: RootState) => state.app.debug;
 export const selectDimensions = (state: RootState) => state.app.dimensions;
 export const selectLeftOffset = (state: RootState) => state.app.leftOffset;
 export const selectRows = (state: RootState) => state.app.rows;

@@ -4,10 +4,16 @@ import {useAppSelector} from "../../../hooks.ts";
 import {selectBlockSize} from "../../../appSlice.ts";
 import {useEffect, useRef, useState} from "react";
 import {XY} from "../../../types.ts";
+import * as React from "react";
+import {debugLog} from "../../../logger.ts";
+import {useDispatch} from "react-redux";
+import {activateLeftMenu, activateRightMenu, setActiveMenu} from "../../TopBar/topBarSlice.ts";
 
 type SubMenuEntry = {
     text: string;
     hotkeyPos?: number;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+    action?: Function;
 };
 
 interface SubMenuProps {
@@ -21,13 +27,14 @@ interface SubMenuProps {
 export default function SubMenu({left, top, width, height, entries}: SubMenuProps) {
     const blockSize = useAppSelector(selectBlockSize);
     const [selection, setSelection] = useState(0);
+    const dispatch = useDispatch();
 
     // This prevents our component from rerendering when the mouse moves
     // But still allows us access to the cursor position
     // Yay react hacks
     const cursorPosRef = useRef<XY>({x: 0, y: 0});
     useAppSelector(
-        (state) => state.cursor.position,
+        (state) => state.cursor.livePosition,
         (_, b) => {
             cursorPosRef.current = b;
             // Prevent rerender
@@ -95,14 +102,35 @@ export default function SubMenu({left, top, width, height, entries}: SubMenuProp
                     setSelection(prevState => prevState + 2);
                 }
             }
+        } else if (code == "ArrowLeft") {
+            dispatch(activateLeftMenu());
+        }  else if (code == "ArrowRight") {
+            dispatch(activateRightMenu());
+        } else if (code == "Escape") {
+            dispatch(setActiveMenu(-1));
         }
     }
 
-    function handleClick(index: number) {
+    function handleClick(index: number, event: React.MouseEvent<HTMLDivElement, MouseEvent>) {
         console.log("Click submenu index " + index);
+
+        // Call action handler for submenu item
+        if (entries[index] != undefined) {
+            // @ts-expect-error @ts-ignore
+            (entries[index] as SubMenuEntry).action();
+        }
+
+        // Close menu
+        dispatch(setActiveMenu(-1));
+
+        // Prevent click from propagating to App
+        event.stopPropagation();
+        event.nativeEvent.stopImmediatePropagation();
     }
 
     useEffect(() => {
+        debugLog("useEffect called in SubMenu");
+
         document.getElementById("fileMenu")!.focus();
     }, []);
 
@@ -134,7 +162,7 @@ export default function SubMenu({left, top, width, height, entries}: SubMenuProp
             {entries.map((entry, i) => {
                 if (isSubMenuEntry(entry)) {
                     return <div
-                        onClick={() => handleClick(i)}
+                        onClick={(event) => handleClick(i, event)}
                         key={"entry" + i}
                     >
                         <Text

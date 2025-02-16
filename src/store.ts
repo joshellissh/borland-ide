@@ -2,6 +2,8 @@ import {Action, configureStore, ThunkAction} from '@reduxjs/toolkit'
 import documentsReducer from "./components/Documents/documentsSlice"
 import cursorReducer from "./components/Cursor/cursorSlice"
 import appReducer from "./appSlice"
+import topBarReducer from "./components/TopBar/topBarSlice"
+import {enableMapSet} from "immer";
 
 const defaultMiddlewareConfig = {
     serializableCheck: {
@@ -9,11 +11,14 @@ const defaultMiddlewareConfig = {
     }
 };
 
+enableMapSet();
+
 export const store = configureStore({
     reducer: {
         app: appReducer,
         cursor: cursorReducer,
-        documents: documentsReducer
+        documents: documentsReducer,
+        topBar: topBarReducer
     },
     middleware: (getDefaultMiddleware) =>
         getDefaultMiddleware(defaultMiddlewareConfig),

@@ -115,7 +115,7 @@ export default function SubMenu({left, top, width, height, entries}: SubMenuProp
         console.log("Click submenu index " + index);
 
         // Call action handler for submenu item
-        if (entries[index] != undefined) {
+        if ((entries[index] as SubMenuEntry).action != undefined) {
             // @ts-expect-error @ts-ignore
             (entries[index] as SubMenuEntry).action();
         }

@@ -1,152 +1,272 @@
 import {JSX} from "react";
 import {Text} from "../../Text/Text.tsx";
-import {lerp} from "../../../math.ts";
 import {DocumentInfo, XY} from "../../../types.ts";
 
-function topBorder(cols: number, docInfo: DocumentInfo): string {
-    let str = "╔═[■]";
+function setCharAt(str: string, index: number, char: string) {
+    if(index > str.length-1) return str;
+    return str.substring(0,index) + char + str.substring(index+1);
+}
 
-    const leftLerp= lerp(3, 28, cols/80);
-    for (let i = 0; i < leftLerp; i++) {
-        str += "═";
+function topBorderDecorations(cols: number, active: boolean): Map<number, string> {
+    let decMap;
+
+    if (active) {
+        decMap = new Map<number, string>([
+            [3, "color: #89fa6e;"],
+            [cols - 4, "color: #89fa6e;"]
+        ]);
+    } else {
+        decMap = new Map<number, string>();
+        for (let i = 0; i < cols; i++) {
+            decMap.set(i, "color: #aaaaaa;");
+        }
     }
 
-    str += " NONAME00.CPP ";
+    return decMap;
+}
 
-    const rightLerp= lerp(1, 26, cols/80);
-    for (let i = 0; i < rightLerp; i++) {
-        str += "═";
+function topBorder(cols: number, docInfo: DocumentInfo, active: boolean): string {
+    let str = "";
+
+    if (active) {
+        str += "╔═[■]";
+    } else {
+        str += "┌────";
     }
 
-    str += docInfo.id + 1;
+    const fillWidth = cols - 12;
+    for (let i = 0; i < fillWidth; i++) {
+        if (active) {
+            str += "═";
+        } else {
+            str += "─";
+        }
+    }
 
-    str += "═[]═╗";
+    const croppedName = docInfo.name.substring(0, docInfo.name.length + (cols - 30));
+    const adjustedWidth = cols - 3;
+    for (
+        let i = Math.floor(adjustedWidth / 2) - Math.floor(croppedName.length / 2),
+            namePos = 0;
+
+            namePos < croppedName.length + 2;
+
+            i++,
+            namePos++
+    ) {
+        if (namePos == 0) {
+            str = setCharAt(str, i, " ");
+        } else if (namePos == croppedName.length + 1) {
+            str = setCharAt(str, i, " ");
+        } else {
+            str = setCharAt(str, i, croppedName[namePos - 1]);
+        }
+    }
+
+    if (docInfo.id < 9) {
+        str += docInfo.id + 1;
+    } else {
+        if (active) {
+            str += "═";
+        } else {
+            str += "─";
+        }
+    }
+
+    if (active) {
+        str += "═[]═╗";
+    } else {
+        str += "─────┐";
+    }
 
     return str;
 }
 
-function leftBorder(left: number, top: number, rows: number): JSX.Element[] {
+function leftBorder(rows: number, active: boolean): JSX.Element[] {
     const elements = [];
-    const height = rows - top;
 
-    for (let i = top + 2; i < height; i++) {
+    let decMap = undefined;
+
+    if (!active) {
+        decMap = new Map<number, string>([
+            [0, "color: #aaaaaa;"]
+        ]);
+    }
+
+    for (let i = 1; i < rows - 1; i++) {
         elements.push(<Text
-            bX={left}
+            bX={0}
             bY={i}
             key={"leftBorder" + i}
-        >║</Text>);
+            decorations={decMap}
+        >{active ? "║" : "│"}</Text>);
     }
 
     return elements;
 }
 
-function rightBorder(left: number, top: number, cols: number, rows: number): JSX.Element[] {
+function rightBorder(cols: number, rows: number, active: boolean): JSX.Element[] {
     const elements = [];
-    const height = rows - top;
 
-    elements.push(<Text
-        bX={cols - left - 1}
-        bY={top + 2}
-        key="rightBorder0"
-        decorations={new Map([
-            [0, "background-color: #4ba7a9;color:#000fa3;"]
-        ])}
-    ></Text>);
-    elements.push(<Text
-        bX={cols - left - 1}
-        bY={top + 3}
-        key="rightBorder1"
-        decorations={new Map([
-            [0, "background-color: #4ba7a9;color:#000fa3;"]
-        ])}
-    >■</Text>);
-
-    for (let i = top + 4; i < height - 1; i++) {
+    if (active) {
         elements.push(<Text
-            bX={cols - left - 1}
-            bY={i}
-            key={"rightBorder" + i}
+            bX={cols - 1}
+            bY={1}
+            key="rightBorder0"
             decorations={new Map([
-                [0, "background-color: #000fa3;color:#4ba7a9;"]
+                [0, "background-color: #4ba7a9;color:#000fa3;"]
             ])}
-        >▒</Text>);
-    }
+        ></Text>);
+        elements.push(<Text
+            bX={cols - 1}
+            bY={2}
+            key="rightBorder1"
+            decorations={new Map([
+                [0, "background-color: #4ba7a9;color:#000fa3;"]
+            ])}
+        >■</Text>);
 
-    elements.push(<Text
-        bX={cols - left - 1}
-        bY={height - 1}
-        key={Math.random()}
-        decorations={new Map([
-            [0, "background-color: #4ba7a9;color:#000fa3;"]
-        ])}
-    ></Text>);
+        for (let i = 3; i < rows - 2; i++) {
+            elements.push(<Text
+                bX={cols - 1}
+                bY={i}
+                key={"rightBorder" + i}
+                decorations={new Map([
+                    [0, "background-color: #000fa3;color:#4ba7a9;"]
+                ])}
+            >▒</Text>);
+        }
+
+        elements.push(<Text
+            bX={cols - 1}
+            bY={rows - 2}
+            key="rightBorderEnd"
+            decorations={new Map([
+                [0, "background-color: #4ba7a9;color:#000fa3;"]
+            ])}
+        ></Text>);
+    } else {
+        for (let i = 1; i < rows - 1; i++) {
+            elements.push(<Text
+                bX={cols - 1}
+                bY={i}
+                key={"rightBorder" + i}
+                decorations={new Map([
+                    [0, "color: #aaaaaa;"]
+                ])}
+            >│</Text>);
+        }
+    }
 
     return elements;
 }
 
-function bottomBorder(left: number, cols: number, caretPos: XY): string {
-    let str = "╚═";
+function bottomBorder(cols: number, caretPos: XY, active: boolean): string {
+    let str = "";
+
+    if (active) {
+        str += "╚═";
+    } else {
+        str += "└──"
+    }
 
     const xLen = 6 - caretPos.x.toString().length;
     const yLen = 6 - (caretPos.y - 1).toString().length;
 
     // Set left border
     for (let i = 0; i < yLen; i++) {
-        str += "═";
+        if (active) {
+            str += "═";
+        } else {
+            str += "─"
+        }
     }
 
     str += " ";
-    str += (caretPos.y - 1) + ":" + (caretPos.x);
+    str += caretPos.y + ":" + caretPos.x;
     str += " ";
 
     // Set right border
     for (let i = 0; i < xLen; i++) {
-        str += "═";
+        if (active) {
+            str += "═";
+        } else {
+            str += "─"
+        }
     }
 
-    str += "■";
-
-    for (let i = left + 21; i < cols - left - 2; i++) {
-        str += "▒";
+    if (active) {
+        str += "■";
+    } else {
+        str += "──";
     }
 
-    str += "─┘"
+    for (let i = 21; i < cols - 2; i++) {
+        if (active) {
+            str += "▒";
+        } else {
+            str += "─";
+        }
+    }
+
+    if (active) {
+        str += "─┘";
+    } else {
+        str += "──┘";
+    }
 
     return str;
 }
 
-export function drawBorders(left: number, top: number, cols: number, rows: number, caretPos: XY, docInfo: DocumentInfo): JSX.Element[] {
+function bottomBorderDecorations(cols: number, active: boolean): Map<number, string> {
+    let decMap;
+
+    if (active) {
+        decMap = new Map<number, string>([
+            [18, "background-color: #4ba7a9;color:#000fa3;"],
+            [19, "background-color: #4ba7a9;color:#000fa3;"],
+            [cols - 3, "background-color: #4ba7a9;color:#000fa3;"],
+            [cols - 2, "background-color: #000fa3;color:#4ba7a9;"],
+            [cols - 1, "background-color: #000fa3;color:#4ba7a9;"],
+        ]);
+        for (let i = 20; i < cols - 3; i++) {
+            decMap.set(i, 'background-color: #000fa3;color:#4ba7a9;');
+        }
+    } else {
+        decMap = new Map<number, string>();
+        for (let i = 0; i < cols; i++) {
+            decMap.set(i, "color: #aaaaaa;");
+        }
+    }
+
+    return decMap;
+}
+
+export function drawBorders(
+    cols: number,
+    rows: number,
+    caretPos: XY,
+    docInfo: DocumentInfo,
+    active: boolean
+): JSX.Element[] {
     const elements = [];
 
     elements.push(<Text
-        bX={left}
-        bY={top + 1}
-        decorations={new Map([
-            [left + 3, "color: #89fa6e;"],
-            [cols - left - 4, "color: #89fa6e;"]
-        ])}
+        bX={0}
+        bY={0}
+        decorations={topBorderDecorations(cols, active)}
         key={"topBorder"}
-    >{topBorder(cols, docInfo)}</Text>);
+    >{topBorder(cols, docInfo, active)}</Text>);
 
-    elements.push(...leftBorder(left, top, rows));
-    elements.push(...rightBorder(left, top, cols, rows));
+    elements.push(...leftBorder(rows, active));
+    elements.push(...rightBorder(cols, rows, active));
 
-    const bottomDecorations = new Map<number, string>([
-        [cols - left - 62, "background-color: #4ba7a9;color:#000fa3;"],
-        [cols - left - 61, "background-color: #4ba7a9;color:#000fa3;"],
-        [cols - left - 3, "background-color: #4ba7a9;color:#000fa3;"],
-        [cols - left - 2, "background-color: #000fa3;color:#4ba7a9;"],
-        [cols - left - 1, "background-color: #000fa3;color:#4ba7a9;"],
-    ]);
-    for (let i = left + 20; i < cols - left - 3; i++) {
-        bottomDecorations.set(left + i, 'background-color: #000fa3;color:#4ba7a9;');
-    }
     elements.push(<Text
-        bX={left}
-        bY={rows - top}
+        bX={0}
+        bY={rows - 1}
         key="bottomBorder"
-        decorations={bottomDecorations}
-    >{bottomBorder(left, cols, caretPos)}</Text>)
+        decorations={bottomBorderDecorations(cols, active)}
+    >{bottomBorder(cols, caretPos, active)}</Text>)
 
     return elements;
 }

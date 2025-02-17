@@ -7,7 +7,15 @@ import {selectBlockSize, selectCols, selectRows} from "../../../appSlice.ts";
 import {drawBorders} from "./borders.tsx";
 import {debugLog} from "../../../logger.ts";
 import {useDispatch} from "react-redux";
-import {closeDocument} from "../documentsSlice.ts";
+import {
+    closeDocument,
+    selectActive,
+    selectDocuments,
+    setActiveDocument,
+    setDocumentPosition,
+    setDocumentSize
+} from "../documentsSlice.ts";
+import {constrain} from "../../../math.ts";
 
 interface DocumentProps {
     docInfo: DocumentInfo;
@@ -22,6 +30,8 @@ export function Document({docInfo}: DocumentProps) {
     const [caretPos, setCaretPos] = useState({x:0, y:0});
     const [caretVisible, ] = useState(true);
     const dispatch = useDispatch();
+    const activeDoc = useAppSelector(selectActive);
+    const documents = useAppSelector(selectDocuments);
 
     // This prevents our component from rerendering when the mouse moves
     // But still allows us access to the cursor position
@@ -35,79 +45,128 @@ export function Document({docInfo}: DocumentProps) {
         }
     );
 
+
     const left = docInfo.docPos.x;
     const top = docInfo.docPos.y;
-    let cols = docInfo.docSize.width;
-    let rows = docInfo.docSize.height;
+    const cols = docInfo.docSize.width;
+    const rows = docInfo.docSize.height;
 
-    // Correct any sizes which go out of bounds
-    if (cols - left > appCols) {
-        cols = appCols - left;
-    }
-    if (rows - top > appRows) {
-        rows = appRows - top;
-    }
-
-    // Set minimums
-    if (cols < 27) {
-        cols = 27;
-    }
-    if (rows < 3) {
-        rows = 3;
-    }
 
     function handleClick() {
         const cx = cursorPosRef.current.x;
         const cy = cursorPosRef.current.y;
 
         // Check if document buttons are clicked
-        if (left + cx == 3 && top + cy == 1) {
-            debugLog("Close document " + docInfo.id);
+        if (activeDoc == docInfo.id && cx - left >= 2 && cx - left <= 4 && cy - top == 0) {
+            debugLog("Closing document " + docInfo.id);
             dispatch(closeDocument(docInfo.id));
+
+            const nextHighestId = getHighestDocument(docInfo.id);
+            if (nextHighestId != undefined) {
+                const numberId = Number(nextHighestId.substring(8));
+                dispatch(setActiveDocument(numberId));
+            }
+
             return;
         }
 
-        if (cx < left + 1 || cx > cols - left - 2) {
-            return;
-        }
-        if (cy < top + 2 || cy > rows - top - 1) {
-            return;
-        }
+        const constrainedPosX = constrain(cursorPosRef.current.x - left, 1, cols - 2);
+        const constrainedPosY = constrain(cursorPosRef.current.y - top, 1, rows - 2);
 
-
-        setCaretPos(cursorPosRef.current);
+        setCaretPos({
+            x: constrainedPosX,
+            y: constrainedPosY,
+        });
     }
+
+
+    function getHighestDocument(excludeId: number): string | undefined {
+        let maxZ = 0;
+        let maxElem: Element | undefined = undefined;
+
+        document.querySelectorAll('.Document:not(#document' + excludeId + ')').forEach(element => {
+            const z = parseInt(window.getComputedStyle(element).zIndex);
+            if (!isNaN(z)) {
+                maxZ = Math.max(maxZ, z);
+                maxElem = element;
+            }
+        });
+
+        if (maxElem == undefined) {
+            return undefined;
+        }
+
+        return (maxElem as Element).id;
+    }
+
+
+    function getHighestDocumentIndex(): number {
+        let maxZ = 0;
+        document.querySelectorAll('.Document').forEach(element => {
+            const z = parseInt(window.getComputedStyle(element).zIndex);
+            if (!isNaN(z)) {
+                maxZ = Math.max(maxZ, z);
+            }
+        });
+        return maxZ;
+    }
+
 
     useEffect(() => {
         debugLog("useEffect called in Document");
 
         // Set initial caret position to 1,1 in document
         setCaretPos({
-           x: left + 1,
-           y: top + 2
+           x: 1,
+           y: 1
         });
-    }, [left, top]);
+
+        // New window with no size set
+        if (docInfo.docSize.width == -1 && docInfo.docSize.height == -1) {
+            let newWidth = appCols - left;
+            let newHeight = appRows - top - 8;
+
+            // Set to full size if the only open doc
+            if (documents.size == 1) {
+                newWidth = appCols;
+                newHeight = 16;
+
+                console.log("Only doc");
+                dispatch(setDocumentPosition({docNum: docInfo.id, pos: { x: 0, y: 1 }}));
+            }
+
+            debugLog("Setting initial document size to " + newWidth + "x" + newHeight);
+            dispatch(setDocumentSize({docNum: docInfo.id, dimensions: {width: newWidth, height: newHeight}}));
+
+            const highestDoc = getHighestDocumentIndex();
+            document.getElementById("document" + docInfo.id)!.style.zIndex = String(highestDoc + 1);
+        }
+    }, []);
+
 
     return (
         <div style={{
             width: blockSize.width * cols,
-            height: blockSize.height * rows
+            height: blockSize.height * rows,
+            left: blockSize.width * left,
+            top: blockSize.height * top,
+            zIndex: 0,
         }}
         className="bg-blue Document"
+        id={"document" + docInfo.id}
         onClick={handleClick}
         >
             {drawBorders(
-                left,
-                top,
                 cols,
                 rows,
                 caretPos,
-                docInfo
+                docInfo,
+                activeDoc == docInfo.id
             )}
             <div style={{
                 position: "relative",
-                left: blockSize.width * 1,
-                top: blockSize.height * 1,
+                left: blockSize.width,
+                top: blockSize.height
             }}
             >
             </div>

@@ -1,5 +1,6 @@
 .Document {
     color: white;
+    position: absolute;
 }
 
 .caret {

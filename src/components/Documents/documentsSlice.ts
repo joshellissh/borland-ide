@@ -1,5 +1,5 @@
 import {createSlice, PayloadAction} from '@reduxjs/toolkit'
-import {DocumentInfo, XY} from "../../types.ts";
+import {DocumentInfo} from "../../types.ts";
 import {RootState} from "../../store.ts";
 
 export interface DocumentsState {
@@ -61,8 +61,6 @@ export const documentsSlice = createSlice({
             const maximized = obj.maximized ?? doc.maximized;
             const nonMaxSize = obj.nonMaxSize ?? doc.nonMaxSize;
             const nonMaxPosition = obj.nonMaxPosition ?? doc.nonMaxPosition;
-            const moving = obj.moving ?? doc.moving;
-            const moveOffset = obj.moveOffset ?? doc.moveOffset;
 
             state.documents.set(
                 obj.id,
@@ -74,8 +72,6 @@ export const documentsSlice = createSlice({
                     maximized: maximized,
                     nonMaxSize: nonMaxSize,
                     nonMaxPosition: nonMaxPosition,
-                    moving: moving,
-                    moveOffset: moveOffset
                 }
             );
         }),

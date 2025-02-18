@@ -16,6 +16,4 @@ export interface DocumentInfo {
     maximized?: boolean;
     nonMaxSize?: Dimensions;
     nonMaxPosition?: XY;
-    moving?: boolean;
-    moveOffset?: XY;
 }

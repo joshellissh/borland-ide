@@ -43,7 +43,7 @@ function topBorder(cols: number, docInfo: DocumentInfo, active: boolean): string
         }
     }
 
-    const croppedName = docInfo.name.substring(0, docInfo.name.length + (cols - 30));
+    const croppedName = docInfo.name!.substring(0, docInfo.name!.length + (cols - 30));
     const adjustedWidth = cols - 3;
     for (
         let i = Math.floor(adjustedWidth / 2) - Math.floor(croppedName.length / 2),

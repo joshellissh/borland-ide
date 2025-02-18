@@ -1,6 +1,6 @@
 import {DocumentInfo, XY} from "../../../types.ts";
 import "./Document.css"
-import {useEffect, useRef, useState} from "react";
+import {useCallback, useEffect, useRef, useState} from "react";
 import {Caret} from "../../Caret/Caret.tsx";
 import {useAppSelector} from "../../../hooks.ts";
 import {selectBlockSize, selectCols, selectRows} from "../../../appSlice.ts";
@@ -22,7 +22,7 @@ interface DocumentProps {
 }
 
 export function Document({docInfo}: DocumentProps) {
-    console.log("Redrawing Document " + docInfo.id);
+    debugLog("Redrawing Document " + docInfo.id);
 
     const blockSize = useAppSelector(selectBlockSize);
     const appCols = useAppSelector(selectCols);
@@ -32,6 +32,9 @@ export function Document({docInfo}: DocumentProps) {
     const dispatch = useDispatch();
     const activeDoc = useAppSelector(selectActive);
     const documents = useAppSelector(selectDocuments);
+    
+    const moving = useRef<boolean>(false);
+    const moveOffset = useRef<XY>({x:0, y:0});
 
     // This prevents our component from rerendering when the mouse moves
     // But still allows us access to the cursor position
@@ -106,6 +109,39 @@ export function Document({docInfo}: DocumentProps) {
         });
     }
 
+
+    const moveHandler = useCallback(() => {
+        if (moving) {
+            console.log("Moving " + docInfo.id);
+            const cx = cursorPosRef.current.x;
+            const cy = cursorPosRef.current.y;
+
+            let newX = cx - moveOffset.current.x;
+            let newY = cy - moveOffset.current.y;
+
+            if (newX < 0) {
+                newX = 0;
+            }
+
+            if (newX + cols > appCols) {
+                newX = appCols - cols;
+            }
+
+            if (newY < 1) {
+                newY = 1;
+            }
+
+            if (newY + rows > appRows - 1) {
+                newY = appRows - rows - 1;
+            }
+
+            dispatch(updateDocument({
+                id: docInfo.id,
+                position: {x: newX, y: newY}
+            }));
+        }
+    }, []);
+
     
     function handleMouseDown() {
         debugLog("Mouse down on " + docInfo.id);
@@ -124,12 +160,24 @@ export function Document({docInfo}: DocumentProps) {
         // The one we want
         else if (cy - top == 0) {
             debugLog("Starting move on " + docInfo.id);
+            moving.current = true;
+            moveOffset.current = {
+                x: cx - left,
+                y: cy - top
+            };
+            document.addEventListener("mousemove", moveHandler);
         }
     }
 
 
     function handleMouseUp() {
         debugLog("Mouse up on " + docInfo.id);
+
+        if (moving) {
+            debugLog("Stopping move on " + docInfo.id);
+            moving.current = false;
+            document.removeEventListener("mousemove", moveHandler);
+        }
     }
 
 

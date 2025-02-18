@@ -35,6 +35,7 @@ export function Document({docInfo}: DocumentProps) {
     
     const moving = useRef<boolean>(false);
     const moveOffset = useRef<XY>({x:0, y:0});
+    const lastPosition = useRef<XY>({x:0, y:0});
 
     // This prevents our component from rerendering when the mouse moves
     // But still allows us access to the cursor position
@@ -112,12 +113,19 @@ export function Document({docInfo}: DocumentProps) {
 
     const moveHandler = useCallback(() => {
         if (moving) {
-            console.log("Moving " + docInfo.id);
             const cx = cursorPosRef.current.x;
             const cy = cursorPosRef.current.y;
 
             let newX = cx - moveOffset.current.x;
             let newY = cy - moveOffset.current.y;
+
+            // Bail out without updating if we're not actually moving.
+            // Saves a lot of rerenders on slow movements.
+            if (lastPosition.current.x == newX && lastPosition.current.y == newY) {
+                return;
+            }
+
+            debugLog("Moving " + docInfo.id);
 
             if (newX < 0) {
                 newX = 0;
@@ -134,6 +142,8 @@ export function Document({docInfo}: DocumentProps) {
             if (newY + rows > appRows - 1) {
                 newY = appRows - rows - 1;
             }
+
+            lastPosition.current = {x: newX, y: newY};
 
             dispatch(updateDocument({
                 id: docInfo.id,

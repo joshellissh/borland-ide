@@ -12,8 +12,8 @@ export interface DocumentInfo {
     id: number;
     name: string;
     docPos: XY;
-    docSize: {
-        width: number,
-        height: number
-    };
+    docSize: Dimensions;
+    maximized?: boolean;
+    nonMaxDimensions?: Dimensions;
+    nonMaxPos?: XY;
 }

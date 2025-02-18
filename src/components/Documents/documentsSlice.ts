@@ -17,7 +17,7 @@ const initialState: DocumentsState = {
             id: 0,
             name: "NONAME00.CPP",
             docPos: {x: 0, y: 1},
-            docSize: {width: 80, height: 16}
+            docSize: {width: 80, height: 16},
         }]
     ])
 };
@@ -61,7 +61,6 @@ export const documentsSlice = createSlice({
         }),
         setDocumentPosition: ((state, payload: PayloadAction<{docNum: number, pos: XY}>) => {
             const doc = state.documents.get(payload.payload.docNum)!;
-            console.log(doc);
             state.documents.set(
                 doc.id,
                 {
@@ -72,11 +71,26 @@ export const documentsSlice = createSlice({
                 }
             );
         }),
+        maximizeDocument: ((state, payload: PayloadAction<{docNum: number, maxSize: Dimensions}>) => {
+            const doc = state.documents.get(payload.payload.docNum)!;
+            state.documents.set(
+                doc.id,
+                {
+                    id: doc.id,
+                    name: doc.name,
+                    docPos: {x: 0, y: 1},
+                    docSize: {width: payload.payload.maxSize.width, height: payload.payload.maxSize.height},
+                    maximized: true,
+                    nonMaxDimensions: doc.docSize,
+                    nonMaxPos: doc.docPos
+                }
+            );
+        }),
     }
 });
 
 export const selectActive = (state: RootState) => state.documents.active;
 export const selectDocuments = (state: RootState) => state.documents.documents;
 
-export const { newDocument, closeDocument, setDocumentSize, setActiveDocument, setDocumentPosition } = documentsSlice.actions;
+export const { newDocument, closeDocument, setDocumentSize, setActiveDocument, setDocumentPosition, maximizeDocument } = documentsSlice.actions;
 export default documentsSlice.reducer;

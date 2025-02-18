@@ -13,7 +13,8 @@ import {
     selectDocuments,
     setActiveDocument,
     setDocumentPosition,
-    setDocumentSize
+    setDocumentSize,
+    maximizeDocument
 } from "../documentsSlice.ts";
 import {constrain} from "../../../math.ts";
 
@@ -56,7 +57,7 @@ export function Document({docInfo}: DocumentProps) {
         const cx = cursorPosRef.current.x;
         const cy = cursorPosRef.current.y;
 
-        // Check if document buttons are clicked
+        // Check if close button is clicked
         if (activeDoc == docInfo.id && cx - left >= 2 && cx - left <= 4 && cy - top == 0) {
             debugLog("Closing document " + docInfo.id);
             dispatch(closeDocument(docInfo.id));
@@ -68,6 +69,15 @@ export function Document({docInfo}: DocumentProps) {
             }
 
             return;
+        } else if (activeDoc == docInfo.id && cols - (cx - left) <= 5 &&  cols - (cx - left) >= 3 && cy - top == 0) {
+            if (!docInfo.maximized) {
+                debugLog("Maximizing document " + docInfo.id);
+                dispatch(maximizeDocument({docNum: docInfo.id, maxSize: {width: appCols, height: appRows - 2}}));
+            } else {
+                debugLog("Restoring document " + docInfo.id);
+                dispatch(setDocumentSize({docNum: docInfo.id, dimensions: docInfo.nonMaxDimensions!}));
+                dispatch(setDocumentPosition({docNum: docInfo.id, pos: docInfo.nonMaxPos!}));
+            }
         }
 
         const constrainedPosX = constrain(cursorPosRef.current.x - left, 1, cols - 2);

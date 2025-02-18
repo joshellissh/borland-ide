@@ -74,7 +74,11 @@ function topBorder(cols: number, docInfo: DocumentInfo, active: boolean): string
     }
 
     if (active) {
-        str += "═[]═╗";
+        if (docInfo.maximized) {
+            str += "═[]═╗";
+        } else {
+            str += "═[]═╗";
+        }
     } else {
         str += "─────┐";
     }

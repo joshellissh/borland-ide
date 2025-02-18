@@ -90,6 +90,15 @@ export function Document({docInfo}: DocumentProps) {
     }
 
 
+    function handleFocus() {
+        debugLog("Focus on " + docInfo.id);
+
+        const highestIndex = getHighestDocumentIndex();
+        document.getElementById("document" + docInfo.id)!.style.zIndex = String(highestIndex + 1);
+        dispatch(setActiveDocument(docInfo.id));
+    }
+
+
     function getHighestDocument(excludeId: number): string | undefined {
         let maxZ = 0;
         let maxElem: Element | undefined = undefined;
@@ -165,6 +174,8 @@ export function Document({docInfo}: DocumentProps) {
         className="bg-blue Document"
         id={"document" + docInfo.id}
         onClick={handleClick}
+        tabIndex={-1}
+        onFocus={handleFocus}
         >
             {drawBorders(
                 cols,

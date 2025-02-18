@@ -10,10 +10,12 @@ export type XY = {
 
 export interface DocumentInfo {
     id: number;
-    name: string;
-    docPos: XY;
-    docSize: Dimensions;
+    name?: string;
+    position?: XY;
+    size?: Dimensions;
     maximized?: boolean;
-    nonMaxDimensions?: Dimensions;
-    nonMaxPos?: XY;
+    nonMaxSize?: Dimensions;
+    nonMaxPosition?: XY;
+    moving?: boolean;
+    moveOffset?: XY;
 }

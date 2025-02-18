@@ -12,11 +12,10 @@ import {
     selectActive,
     selectDocuments,
     setActiveDocument,
-    setDocumentPosition,
-    setDocumentSize,
-    maximizeDocument
+    updateDocument
 } from "../documentsSlice.ts";
 import {constrain} from "../../../math.ts";
+import { getHighestDocument, getHighestDocumentIndex } from "./tools.ts";
 
 interface DocumentProps {
     docInfo: DocumentInfo;
@@ -47,18 +46,24 @@ export function Document({docInfo}: DocumentProps) {
     );
 
 
-    const left = docInfo.docPos.x;
-    const top = docInfo.docPos.y;
-    const cols = docInfo.docSize.width;
-    const rows = docInfo.docSize.height;
+    const left = docInfo.position!.x;
+    const top = docInfo.position!.y;
+    const cols = docInfo.size!.width;
+    const rows = docInfo.size!.height;
 
 
     function handleClick() {
+        
+        // Don't do anything if we're not the active doc
+        if (activeDoc != docInfo.id) {
+            return;
+        }
+
         const cx = cursorPosRef.current.x;
         const cy = cursorPosRef.current.y;
 
         // Check if close button is clicked
-        if (activeDoc == docInfo.id && cx - left >= 2 && cx - left <= 4 && cy - top == 0) {
+        if (cx - left >= 2 && cx - left <= 4 && cy - top == 0) {
             debugLog("Closing document " + docInfo.id);
             dispatch(closeDocument(docInfo.id));
 
@@ -69,15 +74,27 @@ export function Document({docInfo}: DocumentProps) {
             }
 
             return;
-        } else if (activeDoc == docInfo.id && cols - (cx - left) <= 5 &&  cols - (cx - left) >= 3 && cy - top == 0) {
+        } else if (cols - (cx - left) <= 5 &&  cols - (cx - left) >= 3 && cy - top == 0) {
             if (!docInfo.maximized) {
                 debugLog("Maximizing document " + docInfo.id);
-                dispatch(maximizeDocument({docNum: docInfo.id, maxSize: {width: appCols, height: appRows - 2}}));
+                dispatch(updateDocument({
+                    id: docInfo.id, 
+                    maximized: true, 
+                    nonMaxSize:  docInfo.size, 
+                    nonMaxPosition: docInfo.position, 
+                    size: {width: appCols, height: appRows - 2}, 
+                    position: {x: 0, y: 1}}));
             } else {
                 debugLog("Restoring document " + docInfo.id);
-                dispatch(setDocumentSize({docNum: docInfo.id, dimensions: docInfo.nonMaxDimensions!}));
-                dispatch(setDocumentPosition({docNum: docInfo.id, pos: docInfo.nonMaxPos!}));
+                dispatch(updateDocument({
+                    id: docInfo.id, 
+                    maximized: false, 
+                    size: docInfo.nonMaxSize, 
+                    position: docInfo.nonMaxPosition}));
             }
+            return;
+        } else if (cy - top == 0) {
+            console.log("top border");
         }
 
         const constrainedPosX = constrain(cursorPosRef.current.x - left, 1, cols - 2);
@@ -89,45 +106,39 @@ export function Document({docInfo}: DocumentProps) {
         });
     }
 
+    
+    function handleMouseDown() {
+        debugLog("Mouse down on " + docInfo.id);
+
+        const cx = cursorPosRef.current.x;
+        const cy = cursorPosRef.current.y;
+
+        // Close button
+        if (cx - left >= 2 && cx - left <= 4 && cy - top == 0) {
+            return;
+        } 
+        // Max/restore button
+        else if (cols - (cx - left) <= 5 &&  cols - (cx - left) >= 3 && cy - top == 0) {
+            return;
+        } 
+        // The one we want
+        else if (cy - top == 0) {
+            debugLog("Starting move on " + docInfo.id);
+        }
+    }
+
+
+    function handleMouseUp() {
+        debugLog("Mouse up on " + docInfo.id);
+    }
+
 
     function handleFocus() {
         debugLog("Focus on " + docInfo.id);
 
         const highestIndex = getHighestDocumentIndex();
         document.getElementById("document" + docInfo.id)!.style.zIndex = String(highestIndex + 1);
-        dispatch(setActiveDocument(docInfo.id));
-    }
-
-
-    function getHighestDocument(excludeId: number): string | undefined {
-        let maxZ = 0;
-        let maxElem: Element | undefined = undefined;
-
-        document.querySelectorAll('.Document:not(#document' + excludeId + ')').forEach(element => {
-            const z = parseInt(window.getComputedStyle(element).zIndex);
-            if (!isNaN(z)) {
-                maxZ = Math.max(maxZ, z);
-                maxElem = element;
-            }
-        });
-
-        if (maxElem == undefined) {
-            return undefined;
-        }
-
-        return (maxElem as Element).id;
-    }
-
-
-    function getHighestDocumentIndex(): number {
-        let maxZ = 0;
-        document.querySelectorAll('.Document').forEach(element => {
-            const z = parseInt(window.getComputedStyle(element).zIndex);
-            if (!isNaN(z)) {
-                maxZ = Math.max(maxZ, z);
-            }
-        });
-        return maxZ;
+        dispatch(setActiveDocument(docInfo.id!));
     }
 
 
@@ -141,7 +152,7 @@ export function Document({docInfo}: DocumentProps) {
         });
 
         // New window with no size set
-        if (docInfo.docSize.width == -1 && docInfo.docSize.height == -1) {
+        if (docInfo.size!.width == -1 && docInfo.size!.height == -1) {
             let newWidth = appCols - left;
             let newHeight = appRows - top - 8;
 
@@ -150,12 +161,15 @@ export function Document({docInfo}: DocumentProps) {
                 newWidth = appCols;
                 newHeight = 16;
 
-                console.log("Only doc");
-                dispatch(setDocumentPosition({docNum: docInfo.id, pos: { x: 0, y: 1 }}));
+                dispatch(updateDocument({
+                    id: docInfo.id,
+                    position: { x: 0, y: 1 }}));
             }
 
             debugLog("Setting initial document size to " + newWidth + "x" + newHeight);
-            dispatch(setDocumentSize({docNum: docInfo.id, dimensions: {width: newWidth, height: newHeight}}));
+            dispatch(updateDocument({
+                id: docInfo.id,
+                size: {width: newWidth, height: newHeight}}));
 
             const highestDoc = getHighestDocumentIndex();
             document.getElementById("document" + docInfo.id)!.style.zIndex = String(highestDoc + 1);
@@ -173,6 +187,8 @@ export function Document({docInfo}: DocumentProps) {
         }}
         className="bg-blue Document"
         id={"document" + docInfo.id}
+        onMouseDown={handleMouseDown}
+        onMouseUp={handleMouseUp}
         onClick={handleClick}
         tabIndex={-1}
         onFocus={handleFocus}

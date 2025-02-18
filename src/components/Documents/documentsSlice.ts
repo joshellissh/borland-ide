@@ -1,5 +1,5 @@
 import {createSlice, PayloadAction} from '@reduxjs/toolkit'
-import {Dimensions, DocumentInfo, XY} from "../../types.ts";
+import {DocumentInfo, XY} from "../../types.ts";
 import {RootState} from "../../store.ts";
 
 export interface DocumentsState {
@@ -16,8 +16,8 @@ const initialState: DocumentsState = {
         [0, {
             id: 0,
             name: "NONAME00.CPP",
-            docPos: {x: 0, y: 1},
-            docSize: {width: 80, height: 16},
+            position: {x: 10, y: 10},
+            size: {width: 60, height: 10},
         }]
     ])
 };
@@ -35,8 +35,8 @@ export const documentsSlice = createSlice({
                 {
                     id: newDocNum,
                     name: "NONAME" + newDocNum.toString().padStart(2, "0") + ".CPP",
-                    docPos: {x: newDocNum, y: newDocNum + 1},
-                    docSize: {width: -1, height: -1}
+                    position: {x: newDocNum, y: newDocNum + 1},
+                    size: {width: -1, height: -1}
                 }
             );
             state.active = newDocNum;
@@ -44,47 +44,43 @@ export const documentsSlice = createSlice({
         closeDocument: (state, payload: PayloadAction<number>) => {
             state.documents.delete(payload.payload);
         },
-        setDocumentSize: ((state, payload: PayloadAction<{docNum: number, dimensions: Dimensions}>) => {
-            const doc = state.documents.get(payload.payload.docNum)!;
+        updateDocument: ((state, payload: PayloadAction<DocumentInfo>) => {
+            const obj = payload.payload;
+            if (obj.id === null || obj.id === undefined) {
+                throw new Error("Document ID is undefined");
+            }
+
+            const doc = state.documents.get(obj.id);
+            if (doc === undefined) {
+                throw new Error("Document not found");
+            }
+
+            const name = obj.name ?? doc.name;
+            const position = obj.position ?? doc.position;
+            const size = obj.size ?? doc.size;
+            const maximized = obj.maximized ?? doc.maximized;
+            const nonMaxSize = obj.nonMaxSize ?? doc.nonMaxSize;
+            const nonMaxPosition = obj.nonMaxPosition ?? doc.nonMaxPosition;
+            const moving = obj.moving ?? doc.moving;
+            const moveOffset = obj.moveOffset ?? doc.moveOffset;
+
             state.documents.set(
-                doc.id,
+                obj.id,
                 {
-                    id: doc.id,
-                    name: doc.name,
-                    docPos: doc.docPos,
-                    docSize: payload.payload.dimensions
+                    id: obj.id,
+                    name: name,
+                    position: position,
+                    size: size,
+                    maximized: maximized,
+                    nonMaxSize: nonMaxSize,
+                    nonMaxPosition: nonMaxPosition,
+                    moving: moving,
+                    moveOffset: moveOffset
                 }
             );
         }),
         setActiveDocument: ((state, payload: PayloadAction<number>) => {
             state.active = payload.payload;
-        }),
-        setDocumentPosition: ((state, payload: PayloadAction<{docNum: number, pos: XY}>) => {
-            const doc = state.documents.get(payload.payload.docNum)!;
-            state.documents.set(
-                doc.id,
-                {
-                    id: doc.id,
-                    name: doc.name,
-                    docPos: payload.payload.pos,
-                    docSize: doc.docSize
-                }
-            );
-        }),
-        maximizeDocument: ((state, payload: PayloadAction<{docNum: number, maxSize: Dimensions}>) => {
-            const doc = state.documents.get(payload.payload.docNum)!;
-            state.documents.set(
-                doc.id,
-                {
-                    id: doc.id,
-                    name: doc.name,
-                    docPos: {x: 0, y: 1},
-                    docSize: {width: payload.payload.maxSize.width, height: payload.payload.maxSize.height},
-                    maximized: true,
-                    nonMaxDimensions: doc.docSize,
-                    nonMaxPos: doc.docPos
-                }
-            );
         }),
     }
 });
@@ -92,5 +88,5 @@ export const documentsSlice = createSlice({
 export const selectActive = (state: RootState) => state.documents.active;
 export const selectDocuments = (state: RootState) => state.documents.documents;
 
-export const { newDocument, closeDocument, setDocumentSize, setActiveDocument, setDocumentPosition, maximizeDocument } = documentsSlice.actions;
+export const { newDocument, closeDocument, setActiveDocument, updateDocument } = documentsSlice.actions;
 export default documentsSlice.reducer;

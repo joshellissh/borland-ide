@@ -115,6 +115,7 @@ export function Document({docInfo}: DocumentProps) {
 
 
     const dragHandler = useCallback(() => {
+        console.log("Drag");
         const cx = cursorPosRef.current.x;
         const cy = cursorPosRef.current.y;
         
@@ -187,8 +188,13 @@ export function Document({docInfo}: DocumentProps) {
             }));
         }
 
+        dispatch(updateDocument({
+            id: docInfo.id,
+            maximized: false
+        }));
+
         lastPosition.current = {x: cx, y: cy};
-    }, [left, top, docWidth, docHeight]);
+    }, []);
 
     
     function handleMouseDown() {
@@ -251,16 +257,7 @@ export function Document({docInfo}: DocumentProps) {
     function handleMouseUp() {
         debugLog("Mouse up on " + docInfo.id);
 
-        if (moving.current) {
-            debugLog("Stopping move on " + docInfo.id);
-            document.removeEventListener("mousemove", dragHandler);
-        } else if (resizingTL.current || resizingTR.current || resizingBR.current || resizingBL.current) {
-            debugLog("Stopping resize on " + docInfo.id);
-            document.removeEventListener("mousemove", dragHandler);
-
-            console.log(docInfo);
-        }
-
+        document.removeEventListener("mousemove", dragHandler);
         moving.current = false;
         resizingTL.current = false;
         resizingTR.current = false;

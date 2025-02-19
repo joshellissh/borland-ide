@@ -99,7 +99,8 @@ function App() {
         style={{
           width: dimensions.width,
           height: dimensions.height,
-          left: leftOffset
+          left: leftOffset,
+          overflow: "hidden"
         }}
         className="App"
         id="App"

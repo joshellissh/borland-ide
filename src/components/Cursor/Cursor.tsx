@@ -1,8 +1,9 @@
-import {useEffect} from "react";
+import {useCallback, useEffect} from "react";
 import "./Cursor.css"
 import {useAppDispatch, useAppSelector} from "../../hooks.ts";
 import {selectLivePosition, setLivePosition} from "./cursorSlice.ts";
 import {selectBlockSize, selectCols, selectDimensions, selectLeftOffset, selectRows} from "../../appSlice.ts";
+import { debugLog } from "../../logger.ts";
 
 export function Cursor() {
     const dispatch = useAppDispatch();
@@ -13,23 +14,31 @@ export function Cursor() {
     const rows = useAppSelector(selectRows);
     const leftOffset = useAppSelector(selectLeftOffset);
 
+    const moveHandler = useCallback((event: MouseEvent) => {
+        if (dimensions.width == 0 || blockSize.width == 0 || dimensions.height == 0 || blockSize.height == 0) {
+            return;
+        }
+
+        const blockPosX = Math.floor((event.clientX - leftOffset) / blockSize.width);
+        const blockPosY = Math.floor(event.clientY / blockSize.height);
+
+        if (
+            blockPosX < 0 || blockPosY < 0 ||
+            blockPosX >= cols || blockPosY >= rows) {
+            return;
+        }
+
+        dispatch(setLivePosition({x: blockPosX, y: blockPosY}));
+    }, [dimensions, blockSize, cols, rows, leftOffset]);
+
     useEffect(() => {
-        document.addEventListener('mousemove', function(event) {
-            if (dimensions.width == 0 || blockSize.width == 0 || dimensions.height == 0 || blockSize.height == 0) {
-                return;
-            }
+        debugLog("Adding cursor handler");
+        document.addEventListener('mousemove', moveHandler);
 
-            const blockPosX = Math.floor((event.clientX - leftOffset) / blockSize.width);
-            const blockPosY = Math.floor(event.clientY / blockSize.height);
-
-            if (
-                blockPosX < 0 || blockPosY < 0 ||
-                blockPosX >= cols || blockPosY >= rows) {
-                return;
-            }
-
-            dispatch(setLivePosition({x: blockPosX, y: blockPosY}));
-        });
+        return () => {
+            debugLog("Removing cursor handler");
+            document.removeEventListener('mousemove', moveHandler);
+        }
     }, [blockSize, dimensions]);
 
     return <div

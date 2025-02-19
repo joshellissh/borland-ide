@@ -36,6 +36,11 @@ export function Document({docInfo}: DocumentProps) {
     const moving = useRef<boolean>(false);
     const moveOffset = useRef<XY>({x:0, y:0});
     const lastPosition = useRef<XY>({x:0, y:0});
+    const resizingTL = useRef<boolean>(false);
+    const resizingTR = useRef<boolean>(false);
+    const resizingBR = useRef<boolean>(false);
+    const resizingBL = useRef<boolean>(false);
+    const resizeAnchor = useRef<XY>({x:0, y:0});
 
     // This prevents our component from rerendering when the mouse moves
     // But still allows us access to the cursor position
@@ -52,8 +57,8 @@ export function Document({docInfo}: DocumentProps) {
 
     const left = docInfo.position!.x;
     const top = docInfo.position!.y;
-    const cols = docInfo.size!.width;
-    const rows = docInfo.size!.height;
+    const docWidth = docInfo.size!.width;
+    const docHeight = docInfo.size!.height;
 
 
     function handleClick() {
@@ -78,7 +83,7 @@ export function Document({docInfo}: DocumentProps) {
             }
 
             return;
-        } else if (cols - (cx - left) <= 5 &&  cols - (cx - left) >= 3 && cy - top == 0) {
+        } else if (docWidth - (cx - left) <= 5 &&  docWidth - (cx - left) >= 3 && cy - top == 0) {
             if (!docInfo.maximized) {
                 debugLog("Maximizing document " + docInfo.id);
                 dispatch(updateDocument({
@@ -97,12 +102,10 @@ export function Document({docInfo}: DocumentProps) {
                     position: docInfo.nonMaxPosition}));
             }
             return;
-        } else if (cy - top == 0) {
-            console.log("top border");
         }
 
-        const constrainedPosX = constrain(cursorPosRef.current.x - left, 1, cols - 2);
-        const constrainedPosY = constrain(cursorPosRef.current.y - top, 1, rows - 2);
+        const constrainedPosX = constrain(cursorPosRef.current.x - left, 1, docWidth - 2);
+        const constrainedPosY = constrain(cursorPosRef.current.y - top, 1, docHeight - 2);
 
         setCaretPos({
             x: constrainedPosX,
@@ -111,46 +114,81 @@ export function Document({docInfo}: DocumentProps) {
     }
 
 
-    const moveHandler = useCallback(() => {
-        if (moving) {
-            const cx = cursorPosRef.current.x;
-            const cy = cursorPosRef.current.y;
+    const dragHandler = useCallback(() => {
+        const cx = cursorPosRef.current.x;
+        const cy = cursorPosRef.current.y;
+        
+        // Bail out without updating if the mouse hasn't moved blocks.
+        // Saves a lot of rerenders on slow movements.
+        if (lastPosition.current.x == cx && lastPosition.current.y == cy) {
+            return;
+        }
+        
+        if (moving.current) {
+            debugLog("Moving " + docInfo.id);
 
             let newX = cx - moveOffset.current.x;
             let newY = cy - moveOffset.current.y;
 
-            // Bail out without updating if we're not actually moving.
-            // Saves a lot of rerenders on slow movements.
-            if (lastPosition.current.x == newX && lastPosition.current.y == newY) {
-                return;
-            }
-
-            debugLog("Moving " + docInfo.id);
+            console.log(newX, newY);
 
             if (newX < 0) {
                 newX = 0;
             }
 
-            if (newX + cols > appCols) {
-                newX = appCols - cols;
-            }
+            // if (newX + docWidth > appCols) {
+            //     newX = appCols - docWidth;
+            // }
 
             if (newY < 1) {
                 newY = 1;
             }
 
-            if (newY + rows > appRows - 1) {
-                newY = appRows - rows - 1;
-            }
+            // if (newY + docHeight > appRows - 1) {
+            //     newY = appRows - docHeight - 1;
+            // }
 
-            lastPosition.current = {x: newX, y: newY};
+            // console.log(newX, newY);
 
             dispatch(updateDocument({
                 id: docInfo.id,
                 position: {x: newX, y: newY}
             }));
+        } else if (resizingTL.current) {
+            debugLog("Resizing TL " + docInfo.id);
+
+            dispatch(updateDocument({
+                id: docInfo.id,
+                position: {x: cx, y: cy},
+                size: {width: resizeAnchor.current.x - cx, height: resizeAnchor.current.y - cy - 1}
+            }));
+        } else if (resizingTR.current) {
+            debugLog("Resizing TR " + docInfo.id);
+
+            dispatch(updateDocument({
+                id: docInfo.id,
+                position: {x: resizeAnchor.current.x, y: cy},
+                size: {width: cx - resizeAnchor.current.x + 1, height: resizeAnchor.current.y - cy - 1}
+            }));
+        } else if (resizingBR.current) {
+            debugLog("Resizing BR " + docInfo.id);
+
+            dispatch(updateDocument({
+                id: docInfo.id,
+                size: {width: cx - resizeAnchor.current.x + 1, height: cy - resizeAnchor.current.y + 1}
+            }));
+        } else if (resizingBL.current) {
+            debugLog("Resizing BL " + docInfo.id);
+
+            dispatch(updateDocument({
+                id: docInfo.id,
+                position: {x: cx, y: resizeAnchor.current.y},
+                size: {width: resizeAnchor.current.x - cx, height: cy - resizeAnchor.current.y + 1}
+            }));
         }
-    }, []);
+
+        lastPosition.current = {x: cx, y: cy};
+    }, [left, top, docWidth, docHeight]);
 
     
     function handleMouseDown() {
@@ -164,18 +202,48 @@ export function Document({docInfo}: DocumentProps) {
             return;
         } 
         // Max/restore button
-        else if (cols - (cx - left) <= 5 &&  cols - (cx - left) >= 3 && cy - top == 0) {
+        else if (docWidth - (cx - left) <= 5 &&  docWidth - (cx - left) >= 3 && cy - top == 0) {
             return;
         } 
-        // The one we want
-        else if (cy - top == 0) {
+        // Top border, move window
+        else if (cy - top == 0 && cx - left >= 1 && cx - left < docWidth - 1) {
             debugLog("Starting move on " + docInfo.id);
             moving.current = true;
             moveOffset.current = {
                 x: cx - left,
                 y: cy - top
             };
-            document.addEventListener("mousemove", moveHandler);
+            console.log(moveOffset.current);
+            document.addEventListener("mousemove", dragHandler);
+        }
+        // Top left corner drag
+        else if (cy - top == 0 && cx - left == 0) {
+            debugLog("Starting top-left resize on " + docInfo.id);
+            resizingTL.current = true;
+            resizeAnchor.current = {x: left + docWidth, y: top + docHeight + 1};
+            console.log(top, docHeight);
+            document.addEventListener("mousemove", dragHandler);
+        } 
+        // Top right corner drag
+        else if (cy - top == 0 && cx - left >= docWidth - 1) {
+            debugLog("Starting top-right resize on " + docInfo.id);
+            resizingTR.current = true;
+            resizeAnchor.current = {x: left, y: top + docHeight + 1};
+            document.addEventListener("mousemove", dragHandler);
+        }
+        // Bottom right corner drag
+        else if (cy - top == docHeight - 1 && (cx - left >= docWidth - 1 || cx - left >= docWidth - 2)) {
+            debugLog("Starting bottom-right resize on " + docInfo.id);
+            resizingBR.current = true;
+            resizeAnchor.current = {x: left, y: top};
+            document.addEventListener("mousemove", dragHandler);
+        }
+        // Bottom left corner drag
+        else if (cy - top == docHeight - 1 && cx - left ==0) {
+            debugLog("Starting bottom-left resize on " + docInfo.id);
+            resizingBL.current = true;
+            resizeAnchor.current = {x: left + docWidth, y: top};
+            document.addEventListener("mousemove", dragHandler);
         }
     }
 
@@ -183,11 +251,21 @@ export function Document({docInfo}: DocumentProps) {
     function handleMouseUp() {
         debugLog("Mouse up on " + docInfo.id);
 
-        if (moving) {
+        if (moving.current) {
             debugLog("Stopping move on " + docInfo.id);
-            moving.current = false;
-            document.removeEventListener("mousemove", moveHandler);
+            document.removeEventListener("mousemove", dragHandler);
+        } else if (resizingTL.current || resizingTR.current || resizingBR.current || resizingBL.current) {
+            debugLog("Stopping resize on " + docInfo.id);
+            document.removeEventListener("mousemove", dragHandler);
+
+            console.log(docInfo);
         }
+
+        moving.current = false;
+        resizingTL.current = false;
+        resizingTR.current = false;
+        resizingBR.current = false;
+        resizingBL.current = false;
     }
 
 
@@ -237,8 +315,8 @@ export function Document({docInfo}: DocumentProps) {
 
     return (
         <div style={{
-            width: blockSize.width * cols,
-            height: blockSize.height * rows,
+            width: blockSize.width * docWidth,
+            height: blockSize.height * docHeight,
             left: blockSize.width * left,
             top: blockSize.height * top,
             zIndex: 0,
@@ -252,8 +330,8 @@ export function Document({docInfo}: DocumentProps) {
         onFocus={handleFocus}
         >
             {drawBorders(
-                cols,
-                rows,
+                docWidth,
+                docHeight,
                 caretPos,
                 docInfo,
                 activeDoc == docInfo.id
@@ -265,7 +343,7 @@ export function Document({docInfo}: DocumentProps) {
             }}
             >
             </div>
-            {caretVisible && <Caret pos={caretPos} />}
+            {caretVisible && activeDoc == docInfo.id && <Caret pos={caretPos} />}
         </div>
     );
 }

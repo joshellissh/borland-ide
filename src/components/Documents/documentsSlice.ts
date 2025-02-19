@@ -16,8 +16,8 @@ const initialState: DocumentsState = {
         [0, {
             id: 0,
             name: "NONAME00.CPP",
-            position: {x: 10, y: 10},
-            size: {width: 60, height: 10},
+            position: {x: 0, y: 1},
+            size: {width: 80, height: 16},
         }]
     ])
 };

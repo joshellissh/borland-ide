@@ -12,7 +12,7 @@ export default function Documents() {
 
         for (const [, v] of documents) {
             docs.push(<Document
-                docInfo={v}
+                id={v.id}
                 key={v.name}
             />);
         }

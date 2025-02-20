@@ -19,15 +19,27 @@ export function Text({bX, bY, decorations, position = "absolute", children}: Pro
     }
     const text = children as string;
 
-    function elementMarkup() {
+
+    function createLines() {
+        const lines = text.split("\n");
+        let markup = "";
+        for (let i = 0; i < lines.length; i++) {
+            markup += '<div style="height: ' + blockSize.height + 'px;top:' + (blockSize.height * i) + '">' + elementMarkup(lines[i]) + '</div>';
+        }
+
+        return {__html: markup};
+    }
+
+
+    function elementMarkup(line: string): string {
         let markup = "";
         const commonStyle = 'width: ' + blockSize.width + 'px; height: ' + blockSize.height + 'px;';
 
-        for (let i = 0; i < text.length; i++) {
+        for (let i = 0; i < line.length; i++) {
             const decoration = decorations?.get(i);
             if (decoration == undefined) {
-                if (text[i] != " ") {
-                    markup += '<span class="char-block" style="' + commonStyle + '">' + text[i] + '</span>';
+                if (line[i] != " ") {
+                    markup += '<span class="char-block" style="' + commonStyle + '">' + line[i] + '</span>';
                 } else {
                     // Spaces do not render correctly so we just put the correct sized span here with hidden text
                     markup += '<span class="char-block" style="' + commonStyle + 'color:transparent">.</span>';
@@ -35,24 +47,23 @@ export function Text({bX, bY, decorations, position = "absolute", children}: Pro
             } else {
                 markup += '<span class="char-block" style="' + commonStyle + '' +
                     decoration +
-                    '">' + text[i] + '</span>';
+                    '">' + line[i] + '</span>';
             }
         }
 
-        return {__html: markup};
+        return markup;
     }
 
-    // We need to adjust the display coordinates because for some reason the font shifts left and up.
-    // Hacky but seems to work for now.
-    return <div
+
+    return (<div
         style={{
             position: position,
             left: bX * blockSize.width,
             top: bY * blockSize.height,
-            height: blockSize.height,
+            height: blockSize.height * (text.split("\n").length),
             overflow: "hidden"
         }}
-        dangerouslySetInnerHTML={elementMarkup()}
-    >
-    </div>;
+        dangerouslySetInnerHTML={createLines()}
+        >
+        </div>);
 }

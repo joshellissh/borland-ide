@@ -1,4 +1,4 @@
-import {DocumentInfo, XY} from "../../../types.ts";
+import {XY} from "../../../types.ts";
 import "./Document.css"
 import {useCallback, useEffect, useRef, useState} from "react";
 import {Caret} from "../../Caret/Caret.tsx";
@@ -18,11 +18,11 @@ import {constrain} from "../../../math.ts";
 import { getHighestDocument, getHighestDocumentIndex } from "./tools.ts";
 
 interface DocumentProps {
-    docInfo: DocumentInfo;
+    id: number;
 }
 
-export function Document({docInfo}: DocumentProps) {
-    debugLog("Redrawing Document " + docInfo.id);
+export function Document({id}: DocumentProps) {
+    debugLog("Redrawing Document " + id);
 
     const blockSize = useAppSelector(selectBlockSize);
     const appCols = useAppSelector(selectCols);
@@ -55,16 +55,17 @@ export function Document({docInfo}: DocumentProps) {
     );
 
 
-    const left = docInfo.position!.x;
-    const top = docInfo.position!.y;
-    const docWidth = docInfo.size!.width;
-    const docHeight = docInfo.size!.height;
+    const doc = documents.get(id)!;
+    const left = doc.position!.x;
+    const top = doc.position!.y;
+    const docWidth = doc.size!.width;
+    const docHeight = doc.size!.height;
 
 
     function handleClick() {
         
         // Don't do anything if we're not the active doc
-        if (activeDoc != docInfo.id) {
+        if (activeDoc != id) {
             return;
         }
 
@@ -73,10 +74,10 @@ export function Document({docInfo}: DocumentProps) {
 
         // Check if close button is clicked
         if (cx - left >= 2 && cx - left <= 4 && cy - top == 0) {
-            debugLog("Closing document " + docInfo.id);
-            dispatch(closeDocument(docInfo.id));
+            debugLog("Closing document " + id);
+            dispatch(closeDocument(id));
 
-            const nextHighestId = getHighestDocument(docInfo.id);
+            const nextHighestId = getHighestDocument(id);
             if (nextHighestId != undefined) {
                 const numberId = Number(nextHighestId.substring(8));
                 dispatch(setActiveDocument(numberId));
@@ -84,22 +85,22 @@ export function Document({docInfo}: DocumentProps) {
 
             return;
         } else if (docWidth - (cx - left) <= 5 &&  docWidth - (cx - left) >= 3 && cy - top == 0) {
-            if (!docInfo.maximized) {
-                debugLog("Maximizing document " + docInfo.id);
+            if (!doc.maximized) {
+                debugLog("Maximizing document " + id);
                 dispatch(updateDocument({
-                    id: docInfo.id, 
+                    id: id, 
                     maximized: true, 
-                    nonMaxSize:  docInfo.size, 
-                    nonMaxPosition: docInfo.position, 
+                    nonMaxSize:  doc.size, 
+                    nonMaxPosition: doc.position, 
                     size: {width: appCols, height: appRows - 2}, 
                     position: {x: 0, y: 1}}));
             } else {
-                debugLog("Restoring document " + docInfo.id);
+                debugLog("Restoring document " + id);
                 dispatch(updateDocument({
-                    id: docInfo.id, 
+                    id: id, 
                     maximized: false, 
-                    size: docInfo.nonMaxSize, 
-                    position: docInfo.nonMaxPosition}));
+                    size: doc.nonMaxSize, 
+                    position: doc.nonMaxPosition}));
             }
             return;
         }
@@ -115,7 +116,6 @@ export function Document({docInfo}: DocumentProps) {
 
 
     const dragHandler = useCallback(() => {
-        console.log("Drag");
         const cx = cursorPosRef.current.x;
         const cy = cursorPosRef.current.y;
         
@@ -124,22 +124,24 @@ export function Document({docInfo}: DocumentProps) {
         if (lastPosition.current.x == cx && lastPosition.current.y == cy) {
             return;
         }
+
+        console.log(docWidth);
         
         if (moving.current) {
-            debugLog("Moving " + docInfo.id);
+            debugLog("Moving " + id);
 
             let newX = cx - moveOffset.current.x;
             let newY = cy - moveOffset.current.y;
-
-            console.log(newX, newY);
 
             if (newX < 0) {
                 newX = 0;
             }
 
-            // if (newX + docWidth > appCols) {
-            //     newX = appCols - docWidth;
-            // }
+            console.log(newX, docWidth, appCols);
+
+            if (newX + docWidth > appCols) {
+                newX = appCols - docWidth;
+            }
 
             if (newY < 1) {
                 newY = 1;
@@ -152,44 +154,44 @@ export function Document({docInfo}: DocumentProps) {
             // console.log(newX, newY);
 
             dispatch(updateDocument({
-                id: docInfo.id,
+                id: id,
                 position: {x: newX, y: newY}
             }));
         } else if (resizingTL.current) {
-            debugLog("Resizing TL " + docInfo.id);
+            debugLog("Resizing TL " + id);
 
             dispatch(updateDocument({
-                id: docInfo.id,
+                id: id,
                 position: {x: cx, y: cy},
                 size: {width: resizeAnchor.current.x - cx, height: resizeAnchor.current.y - cy - 1}
             }));
         } else if (resizingTR.current) {
-            debugLog("Resizing TR " + docInfo.id);
+            debugLog("Resizing TR " + id);
 
             dispatch(updateDocument({
-                id: docInfo.id,
+                id: id,
                 position: {x: resizeAnchor.current.x, y: cy},
                 size: {width: cx - resizeAnchor.current.x + 1, height: resizeAnchor.current.y - cy - 1}
             }));
         } else if (resizingBR.current) {
-            debugLog("Resizing BR " + docInfo.id);
+            debugLog("Resizing BR " + id);
 
             dispatch(updateDocument({
-                id: docInfo.id,
+                id: id,
                 size: {width: cx - resizeAnchor.current.x + 1, height: cy - resizeAnchor.current.y + 1}
             }));
         } else if (resizingBL.current) {
-            debugLog("Resizing BL " + docInfo.id);
+            debugLog("Resizing BL " + id);
 
             dispatch(updateDocument({
-                id: docInfo.id,
+                id: id,
                 position: {x: cx, y: resizeAnchor.current.y},
                 size: {width: resizeAnchor.current.x - cx, height: cy - resizeAnchor.current.y + 1}
             }));
         }
 
         dispatch(updateDocument({
-            id: docInfo.id,
+            id: id,
             maximized: false
         }));
 
@@ -198,7 +200,7 @@ export function Document({docInfo}: DocumentProps) {
 
     
     function handleMouseDown() {
-        debugLog("Mouse down on " + docInfo.id);
+        debugLog("Mouse down on " + id);
 
         const cx = cursorPosRef.current.x;
         const cy = cursorPosRef.current.y;
@@ -213,7 +215,7 @@ export function Document({docInfo}: DocumentProps) {
         } 
         // Top border, move window
         else if (cy - top == 0 && cx - left >= 1 && cx - left < docWidth - 1) {
-            debugLog("Starting move on " + docInfo.id);
+            debugLog("Starting move on " + id);
             moving.current = true;
             moveOffset.current = {
                 x: cx - left,
@@ -224,7 +226,7 @@ export function Document({docInfo}: DocumentProps) {
         }
         // Top left corner drag
         else if (cy - top == 0 && cx - left == 0) {
-            debugLog("Starting top-left resize on " + docInfo.id);
+            debugLog("Starting top-left resize on " + id);
             resizingTL.current = true;
             resizeAnchor.current = {x: left + docWidth, y: top + docHeight + 1};
             console.log(top, docHeight);
@@ -232,21 +234,21 @@ export function Document({docInfo}: DocumentProps) {
         } 
         // Top right corner drag
         else if (cy - top == 0 && cx - left >= docWidth - 1) {
-            debugLog("Starting top-right resize on " + docInfo.id);
+            debugLog("Starting top-right resize on " + id);
             resizingTR.current = true;
             resizeAnchor.current = {x: left, y: top + docHeight + 1};
             document.addEventListener("mousemove", dragHandler);
         }
         // Bottom right corner drag
         else if (cy - top == docHeight - 1 && (cx - left >= docWidth - 1 || cx - left >= docWidth - 2)) {
-            debugLog("Starting bottom-right resize on " + docInfo.id);
+            debugLog("Starting bottom-right resize on " + id);
             resizingBR.current = true;
             resizeAnchor.current = {x: left, y: top};
             document.addEventListener("mousemove", dragHandler);
         }
         // Bottom left corner drag
         else if (cy - top == docHeight - 1 && cx - left ==0) {
-            debugLog("Starting bottom-left resize on " + docInfo.id);
+            debugLog("Starting bottom-left resize on " + id);
             resizingBL.current = true;
             resizeAnchor.current = {x: left + docWidth, y: top};
             document.addEventListener("mousemove", dragHandler);
@@ -255,7 +257,7 @@ export function Document({docInfo}: DocumentProps) {
 
 
     function handleMouseUp() {
-        debugLog("Mouse up on " + docInfo.id);
+        debugLog("Mouse up on " + id);
 
         document.removeEventListener("mousemove", dragHandler);
         moving.current = false;
@@ -267,11 +269,11 @@ export function Document({docInfo}: DocumentProps) {
 
 
     function handleFocus() {
-        debugLog("Focus on " + docInfo.id);
+        debugLog("Focus on " + id);
 
         const highestIndex = getHighestDocumentIndex();
-        document.getElementById("document" + docInfo.id)!.style.zIndex = String(highestIndex + 1);
-        dispatch(setActiveDocument(docInfo.id!));
+        document.getElementById("document" + id)!.style.zIndex = String(highestIndex + 1);
+        dispatch(setActiveDocument(id!));
     }
 
 
@@ -285,7 +287,7 @@ export function Document({docInfo}: DocumentProps) {
         });
 
         // New window with no size set
-        if (docInfo.size!.width == -1 && docInfo.size!.height == -1) {
+        if (doc.size!.width == -1 && doc.size!.height == -1) {
             let newWidth = appCols - left;
             let newHeight = appRows - top - 8;
 
@@ -295,17 +297,17 @@ export function Document({docInfo}: DocumentProps) {
                 newHeight = 16;
 
                 dispatch(updateDocument({
-                    id: docInfo.id,
+                    id: id,
                     position: { x: 0, y: 1 }}));
             }
 
             debugLog("Setting initial document size to " + newWidth + "x" + newHeight);
             dispatch(updateDocument({
-                id: docInfo.id,
+                id: id,
                 size: {width: newWidth, height: newHeight}}));
 
             const highestDoc = getHighestDocumentIndex();
-            document.getElementById("document" + docInfo.id)!.style.zIndex = String(highestDoc + 1);
+            document.getElementById("document" + id)!.style.zIndex = String(highestDoc + 1);
         }
     }, []);
 
@@ -319,7 +321,7 @@ export function Document({docInfo}: DocumentProps) {
             zIndex: 0,
         }}
         className="bg-blue Document"
-        id={"document" + docInfo.id}
+        id={"document" + id}
         onMouseDown={handleMouseDown}
         onMouseUp={handleMouseUp}
         onClick={handleClick}
@@ -330,8 +332,8 @@ export function Document({docInfo}: DocumentProps) {
                 docWidth,
                 docHeight,
                 caretPos,
-                docInfo,
-                activeDoc == docInfo.id
+                documents.get(id)!,
+                activeDoc == id
             )}
             <div style={{
                 position: "relative",
@@ -340,7 +342,7 @@ export function Document({docInfo}: DocumentProps) {
             }}
             >
             </div>
-            {caretVisible && activeDoc == docInfo.id && <Caret pos={caretPos} />}
+            {caretVisible && activeDoc == id && <Caret pos={caretPos} />}
         </div>
     );
 }

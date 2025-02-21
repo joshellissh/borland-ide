@@ -54,6 +54,8 @@ export function Document({id}: DocumentProps) {
         }
     );
 
+    const dragController = useRef<AbortController>(new AbortController());
+
 
     const doc = documents.get(id)!;
     const left = doc.position!.x;
@@ -115,19 +117,31 @@ export function Document({id}: DocumentProps) {
     }
 
 
-    const dragHandler = useCallback(() => {
+    function dragHandler() {
         let cx = cursorPosRef.current.x;
         let cy = cursorPosRef.current.y;
 
         if (cx < 0) { cx = 0; }
         if (cy < 1) { cy = 1; }
         if (cy > appRows - 2) { cy = appRows - 2; }
+
+        if (!moving.current && !resizingBL.current && !resizingBR.current && !resizingTL.current && !resizingTR.current) {
+            dragController.current.abort();
+            return;
+        }
         
         // Bail out without updating if the mouse hasn't moved blocks.
         // Saves a lot of rerenders on slow movements.
         if (lastPosition.current.x == cx && lastPosition.current.y == cy) {
             return;
         }
+
+        dispatch(updateDocument({
+            id: id,
+            maximized: false
+        }));
+
+        lastPosition.current = {x: cx, y: cy};
         
         if (moving.current) {
             debugLog("Moving " + id);
@@ -137,10 +151,8 @@ export function Document({id}: DocumentProps) {
 
             if (cx < 0) { cx = 0; }
             if (cy < 1) { cy = 1; }
-
-            if (cx + docWidth > appCols) {
-                cx = appCols - docWidth;
-            }
+            if (cy + docHeight > appRows - 1) { cy = appRows - docHeight - 1; }
+            if (cx + docWidth > appCols) { cx = appCols - docWidth; }
 
             dispatch(updateDocument({
                 id: id,
@@ -190,14 +202,7 @@ export function Document({id}: DocumentProps) {
                 size: {width: resizeAnchor.current.x - cx, height: cy - resizeAnchor.current.y + 1}
             }));
         }
-
-        dispatch(updateDocument({
-            id: id,
-            maximized: false
-        }));
-
-        lastPosition.current = {x: cx, y: cy};
-    }, []);
+    }
 
     
     function handleMouseDown() {
@@ -222,35 +227,40 @@ export function Document({id}: DocumentProps) {
                 x: cx - left,
                 y: cy - top
             };
-            document.addEventListener("mousemove", dragHandler);
+            dragController.current = new AbortController();
+            document.addEventListener("mousemove", dragHandler, {signal: dragController.current.signal});
         }
         // Top left corner drag
         else if (cy - top == 0 && cx - left == 0) {
             debugLog("Starting top-left resize on " + id);
             resizingTL.current = true;
             resizeAnchor.current = {x: left + docWidth, y: top + docHeight + 1};
-            document.addEventListener("mousemove", dragHandler);
+            dragController.current = new AbortController();
+            document.addEventListener("mousemove", dragHandler, {signal: dragController.current.signal});
         } 
         // Top right corner drag
         else if (cy - top == 0 && cx - left >= docWidth - 1) {
             debugLog("Starting top-right resize on " + id);
             resizingTR.current = true;
             resizeAnchor.current = {x: left, y: top + docHeight + 1};
-            document.addEventListener("mousemove", dragHandler);
+            dragController.current = new AbortController();
+            document.addEventListener("mousemove", dragHandler, {signal: dragController.current.signal});
         }
         // Bottom right corner drag
         else if (cy - top == docHeight - 1 && (cx - left >= docWidth - 1 || cx - left >= docWidth - 2)) {
             debugLog("Starting bottom-right resize on " + id);
             resizingBR.current = true;
             resizeAnchor.current = {x: left, y: top};
-            document.addEventListener("mousemove", dragHandler);
+            dragController.current = new AbortController();
+            document.addEventListener("mousemove", dragHandler, {signal: dragController.current.signal});
         }
         // Bottom left corner drag
         else if (cy - top == docHeight - 1 && cx - left ==0) {
             debugLog("Starting bottom-left resize on " + id);
             resizingBL.current = true;
             resizeAnchor.current = {x: left + docWidth, y: top};
-            document.addEventListener("mousemove", dragHandler);
+            dragController.current = new AbortController();
+            document.addEventListener("mousemove", dragHandler, {signal: dragController.current.signal});
         }
     }
 
@@ -258,7 +268,7 @@ export function Document({id}: DocumentProps) {
     function handleMouseUp() {
         debugLog("Mouse up on " + id);
 
-        document.removeEventListener("mousemove", dragHandler);
+        dragController.current.abort();
         moving.current = false;
         resizingTL.current = false;
         resizingTR.current = false;

@@ -1,4 +1,4 @@
-import { CSSProperties, useEffect, useRef, useState } from "react";
+import { CSSProperties, useCallback, useEffect, useRef, useState } from "react";
 import { selectBlockSize, selectCols, selectRows } from "../../appSlice";
 import { useAppSelector } from "../../hooks";
 import { Dimensions, XY } from "../../types";
@@ -22,7 +22,10 @@ export function Alert({title, message, dimensions, buttonText, buttonHotkey, clo
     const appCols = useAppSelector(selectCols);
     const appRows = useAppSelector(selectRows);
     const position = useRef<XY>({x: 0, y: 0});
-
+    const moving = useRef<boolean>(false);
+    const moveOffset = useRef<number>(0);
+    const lastPosition = useRef<XY>({x:0, y:0});
+    
     const [buttonCss, setButtonCss] = useState<CSSProperties>({
         marginTop: blockSize.height,
         paddingLeft: (blockSize.width * 3),
@@ -57,11 +60,51 @@ export function Alert({title, message, dimensions, buttonText, buttonHotkey, clo
 
 
     function handleClick() {
-        if (cursorPosRef.current.x - position.current.x == 3 && cursorPosRef.current.y - position.current.y == 0) {
+        if (cursorPosRef.current.x - position.current.x >= 2  && cursorPosRef.current.x - position.current.x <= 4 && cursorPosRef.current.y - position.current.y == 0) {
             debugLog("Alert closed clicked");
             closeCallback();
         }
     }
+
+
+    function handleMouseDown() {
+        if (cursorPosRef.current.y - position.current.y == 0) {
+            debugLog("Mouse down on top border of Alert")
+
+            moving.current = true;
+            moveOffset.current = cursorPosRef.current.x - position.current.x;
+            window.addEventListener("mousemove", handleDrag);
+        }
+    }
+
+
+    function handleMouseUp() {
+        window.removeEventListener("mousemove", handleDrag);
+    }
+
+
+    const handleDrag = useCallback(() => {
+        const cx = cursorPosRef.current.x;
+        const cy = cursorPosRef.current.y;
+        
+        // Bail out without updating if the mouse hasn't moved blocks.
+        // Saves a lot of rerenders on slow movements.
+        if (lastPosition.current.x == cx && lastPosition.current.y == cy) {
+            return;
+        }
+
+        debugLog("Dragging Alert");
+
+        if (moving.current) {
+            position.current.x = cursorPosRef.current.x - moveOffset.current;
+            position.current.y = cursorPosRef.current.y;
+
+            document.getElementById("alert-" + title)!.style.left = (position.current.x * blockSize.width) + "px";
+            document.getElementById("alert-" + title)!.style.top = (position.current.y * blockSize.height) + "px";
+        }
+
+        lastPosition.current = {x: cx, y: cy};
+    }, []);
 
     
     function buttonMouseDown() {
@@ -114,6 +157,8 @@ export function Alert({title, message, dimensions, buttonText, buttonHotkey, clo
                 boxShadow: (blockSize.width*2) + "px " + blockSize.height + "px rgb(0 0 0 / 75%)"
             }}
             onClick={handleClick}
+            onMouseDown={handleMouseDown}
+            onMouseUp={handleMouseUp}
             >
                 {drawBorders(title, dimensions)}
                 <div style={{

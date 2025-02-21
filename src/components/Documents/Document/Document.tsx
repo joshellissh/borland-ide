@@ -116,49 +116,41 @@ export function Document({id}: DocumentProps) {
 
 
     const dragHandler = useCallback(() => {
-        const cx = cursorPosRef.current.x;
-        const cy = cursorPosRef.current.y;
+        let cx = cursorPosRef.current.x;
+        let cy = cursorPosRef.current.y;
+
+        if (cx < 0) { cx = 0; }
+        if (cy < 1) { cy = 1; }
+        if (cy > appRows - 2) { cy = appRows - 2; }
         
         // Bail out without updating if the mouse hasn't moved blocks.
         // Saves a lot of rerenders on slow movements.
         if (lastPosition.current.x == cx && lastPosition.current.y == cy) {
             return;
         }
-
-        console.log(docWidth);
         
         if (moving.current) {
             debugLog("Moving " + id);
 
-            let newX = cx - moveOffset.current.x;
-            let newY = cy - moveOffset.current.y;
+            cx -= moveOffset.current.x;
+            cy -= moveOffset.current.y;
 
-            if (newX < 0) {
-                newX = 0;
+            if (cx < 0) { cx = 0; }
+            if (cy < 1) { cy = 1; }
+
+            if (cx + docWidth > appCols) {
+                cx = appCols - docWidth;
             }
-
-            console.log(newX, docWidth, appCols);
-
-            if (newX + docWidth > appCols) {
-                newX = appCols - docWidth;
-            }
-
-            if (newY < 1) {
-                newY = 1;
-            }
-
-            // if (newY + docHeight > appRows - 1) {
-            //     newY = appRows - docHeight - 1;
-            // }
-
-            // console.log(newX, newY);
 
             dispatch(updateDocument({
                 id: id,
-                position: {x: newX, y: newY}
+                position: {x: cx, y: cy}
             }));
         } else if (resizingTL.current) {
             debugLog("Resizing TL " + id);
+
+            if (resizeAnchor.current.x - cx < 27) { cx = resizeAnchor.current.x - 27; }
+            if (resizeAnchor.current.y - cy - 1 < 3) { cy = resizeAnchor.current.y - 4; }
 
             dispatch(updateDocument({
                 id: id,
@@ -168,6 +160,9 @@ export function Document({id}: DocumentProps) {
         } else if (resizingTR.current) {
             debugLog("Resizing TR " + id);
 
+            if (cx - resizeAnchor.current.x + 1 < 27) { cx = resizeAnchor.current.x + 26; }
+            if (resizeAnchor.current.y - cy - 1 < 3) { cy = resizeAnchor.current.y - 4; }
+
             dispatch(updateDocument({
                 id: id,
                 position: {x: resizeAnchor.current.x, y: cy},
@@ -176,12 +171,18 @@ export function Document({id}: DocumentProps) {
         } else if (resizingBR.current) {
             debugLog("Resizing BR " + id);
 
+            if (cx - resizeAnchor.current.x + 1 < 27) { cx = resizeAnchor.current.x + 26; }
+            if (cy - resizeAnchor.current.y + 1 < 3) { cy = resizeAnchor.current.y + 2; }
+
             dispatch(updateDocument({
                 id: id,
                 size: {width: cx - resizeAnchor.current.x + 1, height: cy - resizeAnchor.current.y + 1}
             }));
         } else if (resizingBL.current) {
             debugLog("Resizing BL " + id);
+
+            if (resizeAnchor.current.x - cx < 27) { cx = resizeAnchor.current.x - 27; }
+            if (cy - resizeAnchor.current.y + 1 < 3) { cy = resizeAnchor.current.y + 2; }
 
             dispatch(updateDocument({
                 id: id,
@@ -221,7 +222,6 @@ export function Document({id}: DocumentProps) {
                 x: cx - left,
                 y: cy - top
             };
-            console.log(moveOffset.current);
             document.addEventListener("mousemove", dragHandler);
         }
         // Top left corner drag
@@ -229,7 +229,6 @@ export function Document({id}: DocumentProps) {
             debugLog("Starting top-left resize on " + id);
             resizingTL.current = true;
             resizeAnchor.current = {x: left + docWidth, y: top + docHeight + 1};
-            console.log(top, docHeight);
             document.addEventListener("mousemove", dragHandler);
         } 
         // Top right corner drag

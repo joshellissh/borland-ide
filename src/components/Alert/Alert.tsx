@@ -1,4 +1,4 @@
-import { CSSProperties, useCallback, useEffect, useRef, useState } from "react";
+import { CSSProperties, useEffect, useRef, useState } from "react";
 import { selectBlockSize, selectCols, selectRows } from "../../appSlice";
 import { useAppSelector } from "../../hooks";
 import { Dimensions, XY } from "../../types";

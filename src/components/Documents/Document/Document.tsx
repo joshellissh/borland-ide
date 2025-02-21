@@ -1,6 +1,6 @@
 import {XY} from "../../../types.ts";
 import "./Document.css"
-import {useCallback, useEffect, useRef, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import {Caret} from "../../Caret/Caret.tsx";
 import {useAppSelector} from "../../../hooks.ts";
 import {selectBlockSize, selectCols, selectRows} from "../../../appSlice.ts";

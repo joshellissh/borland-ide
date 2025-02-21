@@ -22,9 +22,11 @@ export function Alert({title, message, dimensions, buttonText, buttonHotkey, clo
     const appCols = useAppSelector(selectCols);
     const appRows = useAppSelector(selectRows);
     const position = useRef<XY>({x: 0, y: 0});
-    const moving = useRef<boolean>(false);
+    const [moving, setMoving] = useState(false);
     const moveOffset = useRef<number>(0);
     const lastPosition = useRef<XY>({x:0, y:0});
+    const moveAbort = useRef<AbortController>(new AbortController());
+    
     
     const [buttonCss, setButtonCss] = useState<CSSProperties>({
         marginTop: blockSize.height,
@@ -71,19 +73,21 @@ export function Alert({title, message, dimensions, buttonText, buttonHotkey, clo
         if (cursorPosRef.current.y - position.current.y == 0) {
             debugLog("Mouse down on top border of Alert")
 
-            moving.current = true;
+            setMoving(true);
             moveOffset.current = cursorPosRef.current.x - position.current.x;
-            window.addEventListener("mousemove", handleDrag);
+            moveAbort.current = new AbortController();
+            window.addEventListener("mousemove", handleDrag, {signal: moveAbort.current.signal});
         }
     }
 
 
     function handleMouseUp() {
-        window.removeEventListener("mousemove", handleDrag);
+        setMoving(false);
+        moveAbort.current.abort();
     }
 
 
-    const handleDrag = useCallback(() => {
+    function handleDrag() {
         const cx = cursorPosRef.current.x;
         const cy = cursorPosRef.current.y;
         
@@ -93,18 +97,21 @@ export function Alert({title, message, dimensions, buttonText, buttonHotkey, clo
             return;
         }
 
+        lastPosition.current = {x: cx, y: cy};
+
         debugLog("Dragging Alert");
 
-        if (moving.current) {
-            position.current.x = cursorPosRef.current.x - moveOffset.current;
-            position.current.y = cursorPosRef.current.y;
+        if (cursorPosRef.current.x - moveOffset.current < 0) { return; }
+        if (cursorPosRef.current.y < 1) { return; }
+        if (cursorPosRef.current.x - moveOffset.current + dimensions.width > appCols) { return; }
+        if (cursorPosRef.current.y + dimensions.height > appRows - 1) { return; }
 
-            document.getElementById("alert-" + title)!.style.left = (position.current.x * blockSize.width) + "px";
-            document.getElementById("alert-" + title)!.style.top = (position.current.y * blockSize.height) + "px";
-        }
+        position.current.x = cursorPosRef.current.x - moveOffset.current;
+        position.current.y = cursorPosRef.current.y;
 
-        lastPosition.current = {x: cx, y: cy};
-    }, []);
+        document.getElementById("alert-" + title)!.style.left = (position.current.x * blockSize.width) + "px";
+        document.getElementById("alert-" + title)!.style.top = (position.current.y * blockSize.height) + "px";
+    }
 
     
     function buttonMouseDown() {
@@ -160,7 +167,7 @@ export function Alert({title, message, dimensions, buttonText, buttonHotkey, clo
             onMouseDown={handleMouseDown}
             onMouseUp={handleMouseUp}
             >
-                {drawBorders(title, dimensions)}
+                {drawBorders(title, dimensions, moving)}
                 <div style={{
                     position: "relative",
                     left: blockSize.width,

@@ -140,21 +140,13 @@ export default function SubMenu({left, top, width, height, entries}: SubMenuProp
         onKeyDown={(event) => handleKeyDown(event.code)}
     >
         <div
-            className="SubMenuShadow"
-            style={{
-                left: (left + 2) * blockSize.width,
-                top: (top + 1) * blockSize.height,
-                width: width*blockSize.width,
-                height: height*blockSize.height
-            }}
-        />
-        <div
             className="bg-grey SubMenu"
             style={{
                 left: left * blockSize.width,
                 top: top * blockSize.height,
                 width: width*blockSize.width,
-                height: height*blockSize.height
+                height: height*blockSize.height,
+                boxShadow: (blockSize.width*2) + "px " + blockSize.height + "px rgb(0 0 0 / 75%)"
             }}
         >
             <Text bX={1} bY={0} position="relative">{border("┌", "─", "┐")}</Text>

@@ -16,6 +16,7 @@ import {
 } from "../documentsSlice.ts";
 import {constrain} from "../../../math.ts";
 import { getHighestDocument, getHighestDocumentIndex } from "./tools.ts";
+import { selectActiveMenu, setActiveMenu } from "../../TopBar/topBarSlice.ts";
 
 interface DocumentProps {
     id: number;
@@ -32,6 +33,7 @@ export function Document({id}: DocumentProps) {
     const dispatch = useDispatch();
     const activeDoc = useAppSelector(selectActive);
     const documents = useAppSelector(selectDocuments);
+    const activeMenu = useAppSelector(selectActiveMenu);
     
     const moving = useRef<boolean>(false);
     const moveOffset = useRef<XY>({x:0, y:0});
@@ -64,8 +66,7 @@ export function Document({id}: DocumentProps) {
     const docHeight = doc.size!.height;
 
 
-    function handleClick() {
-        
+    function handleClick(event: React.MouseEvent<HTMLDivElement, MouseEvent>) {        
         // Don't do anything if we're not the active doc
         if (activeDoc != id) {
             return;
@@ -102,6 +103,10 @@ export function Document({id}: DocumentProps) {
             x: constrainedPosX,
             y: constrainedPosY,
         });
+
+        // Prevent click from propagating to App
+        event.stopPropagation();
+        event.nativeEvent.stopImmediatePropagation();
     }
 
 
@@ -195,6 +200,12 @@ export function Document({id}: DocumentProps) {
     
     function handleMouseDown() {
         debugLog("Mouse down on " + id);
+
+        // Close menu if open
+        if (activeMenu != -1) {
+            dispatch(setActiveMenu(-1));
+            return;
+        }
 
         const cx = cursorPosRef.current.x;
         const cy = cursorPosRef.current.y;

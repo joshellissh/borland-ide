@@ -15,6 +15,7 @@ import {
   setDimensions,
   setLeftOffset
 } from "./appSlice.ts";
+import { selectActiveMenu, setActiveMenu } from './components/TopBar/topBarSlice.ts';
 
 function App() {
   const drawGrid = false;
@@ -26,6 +27,7 @@ function App() {
   const dimensions = useAppSelector(selectDimensions);
   const cols = useAppSelector(selectCols);
   const rows = useAppSelector(selectRows);
+  const activeMenu = useAppSelector(selectActiveMenu);
 
 
   // Updates app bounds, position, etc.
@@ -62,6 +64,13 @@ function App() {
         "- block res: " + blockW + "," + blockH + "\n" +
         "- offset: " + leftOffset
     );
+  }
+
+
+  function handleClick() {
+    if (activeMenu != -1) {
+      dispatch(setActiveMenu(-1));
+    }
   }
 
 
@@ -104,6 +113,7 @@ function App() {
         }}
         className="App"
         id="App"
+        onClick={handleClick}
     >
       <TopBar />
       <BottomBar cols={cols} rows={rows} />

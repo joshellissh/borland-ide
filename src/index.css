@@ -25,6 +25,10 @@ body {
     background-color: #4ca630;
 }
 
+.bg-black {
+    background-color: black;
+}
+
 .font-yellow {
     color: #fffe73;
 }
@@ -35,6 +39,10 @@ body {
 
 .font-bright-green {
     color: #89fa6e;
+}
+
+.font-disabled {
+    color: #555555;
 }
 
 .font-red {

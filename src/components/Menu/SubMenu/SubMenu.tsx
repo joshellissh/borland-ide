@@ -14,6 +14,7 @@ type SubMenuEntry = {
     hotkeyPos?: number;
     // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
     action?: Function;
+    disabled?: boolean;
 };
 
 interface SubMenuProps {
@@ -66,17 +67,29 @@ export default function SubMenu({left, top, width, height, entries}: SubMenuProp
         const decorationMap = new Map<number, string>();
 
         if (index == selection) {
-            for (let i = 1; i < entry.text.length + 3; i++) {
-                if (entry.hotkeyPos == i - 2) {
-                    decorationMap.set(i, "background-color: #4ca630;color: #a40604;");
-                } else {
-                    decorationMap.set(i, "background-color: #4ca630;");
+            if (entry.disabled) {
+                for (let i = 1; i < entry.text.length + 3; i++) {
+                    decorationMap.set(i, "background-color: black;color: #555555;");
+                }
+            } else {
+                for (let i = 1; i < entry.text.length + 3; i++) {
+                    if (entry.hotkeyPos == i - 2) {
+                        decorationMap.set(i, "background-color: #4ca630;color: #a40604;");
+                    } else {
+                        decorationMap.set(i, "background-color: #4ca630;");
+                    }
                 }
             }
         } else {
-            for (let i = 1; i < entry.text.length + 3; i++) {
-                if (entry.hotkeyPos == i - 2) {
-                    decorationMap.set(i, "color: #a40604;");
+            if (entry.disabled) {
+                for (let i = 1; i < entry.text.length + 3; i++) {
+                    decorationMap.set(i, "color: #555555;");
+                }
+            } else {
+                for (let i = 1; i < entry.text.length + 3; i++) {
+                    if (entry.hotkeyPos == i - 2) {
+                        decorationMap.set(i, "color: #a40604;");
+                    }
                 }
             }
         }

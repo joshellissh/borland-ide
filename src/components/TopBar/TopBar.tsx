@@ -128,13 +128,13 @@ export function TopBar() {
                             height={12}
                             entries={[
                                 { text: "Undo            Alt+BkSp", hotkeyPos: 0 },
-                                { text: "Redo      Shift+Alt+BkSp", hotkeyPos: 0 },
+                                { text: "Redo      Shift+Alt+BkSp", hotkeyPos: 0, disabled: true },
                                 "separator",
-                                { text: "Cut            Shift+Del", hotkeyPos: 0 },
-                                { text: "Copy            Ctrl+Ins", hotkeyPos: 0 },
-                                { text: "Paste          Shift+Ins", hotkeyPos: 0 },
-                                { text: "Clear           Ctrl+Del", hotkeyPos: 0},
-                                { text: "Copy example            ", hotkeyPos: 0 },
+                                { text: "Cut            Shift+Del", hotkeyPos: 0, disabled: true },
+                                { text: "Copy            Ctrl+Ins", hotkeyPos: 0, disabled: true },
+                                { text: "Paste          Shift+Ins", hotkeyPos: 0, disabled: true },
+                                { text: "Clear           Ctrl+Del", hotkeyPos: 0, disabled: true },
+                                { text: "Copy example            ", hotkeyPos: 0, disabled: true },
                                 "separator",
                                 { text: "Show clipboard          ", hotkeyPos: 0 },
                             ]}

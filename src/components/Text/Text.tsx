@@ -8,9 +8,10 @@ interface TextProps {
     bY: number;
     decorations?: Map<number, string>;
     position?: "absolute" | "relative";
+    passthru?: boolean;
 }
 
-export function Text({bX, bY, decorations, position = "absolute", children}: PropsWithChildren<TextProps>) {
+export function Text({bX, bY, decorations, position = "absolute", passthru = false, children}: PropsWithChildren<TextProps>) {
     const blockSize = useAppSelector(selectBlockSize);
 
     // Make sure children is only a string
@@ -61,7 +62,8 @@ export function Text({bX, bY, decorations, position = "absolute", children}: Pro
             left: bX * blockSize.width,
             top: bY * blockSize.height,
             height: blockSize.height * (text.split("\n").length),
-            overflow: "hidden"
+            overflow: "hidden",
+            pointerEvents: passthru ? "none" : "auto"
         }}
         dangerouslySetInnerHTML={createLines()}
         >

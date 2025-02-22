@@ -41,6 +41,8 @@ export function Document({id}: DocumentProps) {
     const resizingBR = useRef<boolean>(false);
     const resizingBL = useRef<boolean>(false);
     const resizeAnchor = useRef<XY>({x:0, y:0});
+    const dragController = useRef<AbortController>(new AbortController());
+    const [, setBorderRedraw] = useState(0);
 
     // This prevents our component from rerendering when the mouse moves
     // But still allows us access to the cursor position
@@ -53,8 +55,6 @@ export function Document({id}: DocumentProps) {
             return true;
         }
     );
-
-    const dragController = useRef<AbortController>(new AbortController());
 
 
     const doc = documents.get(id)!;
@@ -74,19 +74,7 @@ export function Document({id}: DocumentProps) {
         const cx = cursorPosRef.current.x;
         const cy = cursorPosRef.current.y;
 
-        // Check if close button is clicked
-        if (cx - left >= 2 && cx - left <= 4 && cy - top == 0) {
-            debugLog("Closing document " + id);
-            dispatch(closeDocument(id));
-
-            const nextHighestId = getHighestDocument(id);
-            if (nextHighestId != undefined) {
-                const numberId = Number(nextHighestId.substring(8));
-                dispatch(setActiveDocument(numberId));
-            }
-
-            return;
-        } else if (docWidth - (cx - left) <= 5 &&  docWidth - (cx - left) >= 3 && cy - top == 0) {
+        if (docWidth - (cx - left) <= 5 &&  docWidth - (cx - left) >= 3 && cy - top == 0) {
             if (!doc.maximized) {
                 debugLog("Maximizing document " + id);
                 dispatch(updateDocument({
@@ -213,6 +201,15 @@ export function Document({id}: DocumentProps) {
 
         // Close button
         if (cx - left >= 2 && cx - left <= 4 && cy - top == 0) {
+            debugLog("Closing document " + id);
+            dispatch(closeDocument(id));
+
+            const nextHighestId = getHighestDocument(id);
+            if (nextHighestId != undefined) {
+                const numberId = Number(nextHighestId.substring(8));
+                dispatch(setActiveDocument(numberId));
+            }
+
             return;
         } 
         // Max/restore button
@@ -227,6 +224,7 @@ export function Document({id}: DocumentProps) {
                 x: cx - left,
                 y: cy - top
             };
+            setBorderRedraw(prevState => prevState + 1);
             dragController.current = new AbortController();
             document.addEventListener("mousemove", dragHandler, {signal: dragController.current.signal});
         }
@@ -274,6 +272,7 @@ export function Document({id}: DocumentProps) {
         resizingTR.current = false;
         resizingBR.current = false;
         resizingBL.current = false;
+        setBorderRedraw(prevState => prevState + 1);
     }
 
 
@@ -342,7 +341,8 @@ export function Document({id}: DocumentProps) {
                 docHeight,
                 caretPos,
                 documents.get(id)!,
-                activeDoc == id
+                activeDoc == id,
+                moving.current || resizingBL.current || resizingBR.current || resizingTL.current || resizingTR.current,
             )}
             <div style={{
                 position: "relative",

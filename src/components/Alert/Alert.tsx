@@ -61,15 +61,13 @@ export function Alert({title, message, dimensions, buttonText, buttonHotkey, clo
     }
 
 
-    function handleClick() {
+    function handleMouseDown() {
         if (cursorPosRef.current.x - position.current.x >= 2  && cursorPosRef.current.x - position.current.x <= 4 && cursorPosRef.current.y - position.current.y == 0) {
             debugLog("Alert closed clicked");
             closeCallback();
+            return;
         }
-    }
 
-
-    function handleMouseDown() {
         if (cursorPosRef.current.y - position.current.y == 0) {
             debugLog("Mouse down on top border of Alert")
 
@@ -161,9 +159,8 @@ export function Alert({title, message, dimensions, buttonText, buttonHotkey, clo
                 position: "absolute",
                 width: blockSize.width * dimensions.width,
                 height: blockSize.height * dimensions.height,
-                boxShadow: (blockSize.width*2) + "px " + blockSize.height + "px rgb(0 0 0 / 75%)"
+                boxShadow: !moving ? (blockSize.width*2) + "px " + blockSize.height + "px rgb(0 0 0 / 75%)" : ""
             }}
-            onClick={handleClick}
             onMouseDown={handleMouseDown}
             onMouseUp={handleMouseUp}
             >
@@ -186,7 +183,7 @@ export function Alert({title, message, dimensions, buttonText, buttonHotkey, clo
                         onMouseUp={buttonMouseUp}
                         onMouseOut={buttonMouseUp}
                     >
-                        <Text bX={0} bY={0} position="relative" 
+                        <Text bX={0} bY={0} position="relative" passthru={true}
                         decorations={buttonDecorations()}
                         >
                             {buttonText}

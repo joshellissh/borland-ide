@@ -9,7 +9,7 @@ import {debugLog} from "../../logger.ts";
 import {selectActiveMenu, setActiveMenu} from "./topBarSlice.ts";
 import {newDocument} from "../Documents/documentsSlice.ts";
 import {useDispatch} from "react-redux";
-import { Alert } from "../Alert/Alert.tsx";
+import { tasmOpen, tdOpen, tpOpen } from "./menuHandlers/spaceMenu.ts";
 
 
 export function TopBar() {
@@ -18,39 +18,20 @@ export function TopBar() {
     const dispatch = useDispatch();
     const [displayElements, setDisplayElements] = React.useState<Map<string, React.ReactElement>>(new Map());
 
-    
+
     function addMapEntry(key: string, value: React.ReactElement) {
         setDisplayElements(prevState => {
             return new Map(prevState).set(key, value);
         });
     }
-
-
+    
+    
     function removeMapEntry(key: string) {
         setDisplayElements(prevState => {
             const newState = new Map(prevState);
             newState.delete(key);
             return newState;
         });
-    }
-
-
-    function tasmOpen() {
-        debugLog("Opening Turbo Assembler...");
-
-        addMapEntry("tasm", React.createElement(Alert, {
-                title: "Error",
-                message: `
-    Cannot find executable: 
-
-             TASM`,
-                dimensions: { width: 32, height: 11 },
-                buttonText: "OK",
-                buttonHotkey: 1,
-                closeCallback: () => {removeMapEntry("tasm")},
-                buttonCallback: () => {removeMapEntry("tasm")},
-                key: "tasm"
-            }));
     }
 
 
@@ -108,9 +89,9 @@ export function TopBar() {
                             { text: "Repaint desktop", hotkeyPos: 0 },
                             "separator",
                             { text: "GREP           ", hotkeyPos: 0 },
-                            { text: "Turbo Assembler", hotkeyPos: 0, action: tasmOpen },
-                            { text: "Turbo Debugger ", hotkeyPos: 6 },
-                            { text: "Turbo Profiler ", hotkeyPos: 6 },
+                            { text: "Turbo Assembler", hotkeyPos: 0, action: () => tasmOpen(addMapEntry, removeMapEntry) },
+                            { text: "Turbo Debugger ", hotkeyPos: 6, action: () => tdOpen(addMapEntry, removeMapEntry) },
+                            { text: "Turbo Profiler ", hotkeyPos: 6, action: () => tpOpen(addMapEntry, removeMapEntry) },
                         ]}
                     />
                 </Menu>

@@ -66,7 +66,7 @@ export function Document({id}: DocumentProps) {
     const docHeight = doc.size!.height;
 
 
-    function handleClick(event: React.MouseEvent<HTMLDivElement, MouseEvent>) {        
+    function handleClick(event: React.MouseEvent<HTMLDivElement, MouseEvent>) {
         // Don't do anything if we're not the active doc
         if (activeDoc != id) {
             return;
@@ -209,6 +209,13 @@ export function Document({id}: DocumentProps) {
 
         const cx = cursorPosRef.current.x;
         const cy = cursorPosRef.current.y;
+
+        // Set doc as active if needed
+        if (activeDoc != id) {
+            const highestIndex = getHighestDocumentIndex();
+            document.getElementById("document" + id)!.style.zIndex = String(highestIndex + 1);
+            dispatch(setActiveDocument(id!));
+        }
 
         // Close button
         if (cx - left >= 2 && cx - left <= 4 && cy - top == 0) {

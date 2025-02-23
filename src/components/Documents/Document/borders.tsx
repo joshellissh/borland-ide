@@ -192,7 +192,7 @@ function bottomBorder(cols: number, caretPos: XY, active: boolean, moving: boole
     }
 
     const xLen = 6 - caretPos.x.toString().length;
-    const yLen = 6 - (caretPos.y - 1).toString().length;
+    const yLen = 6 - caretPos.y.toString().length;
 
     // Set left border
     for (let i = 0; i < yLen; i++) {
@@ -208,7 +208,7 @@ function bottomBorder(cols: number, caretPos: XY, active: boolean, moving: boole
         str += caretPos.y + ":" + caretPos.x;
         str += " ";
     } else {
-        str += "─────";
+        str += "──────";
     }
 
     // Set right border

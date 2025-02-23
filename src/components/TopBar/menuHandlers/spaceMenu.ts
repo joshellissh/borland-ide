@@ -1,11 +1,17 @@
-import React from "react";
+import React, { Dispatch } from "react";
 import { debugLog } from "../../../logger";
-import { Alert } from "../../Alert/Alert";
+import { Alert } from "../../Alerts/Alert/Alert";
+import { closeAlert, openAlert } from "../../Alerts/alertsSlice";
+import { UnknownAction } from "@reduxjs/toolkit";
 
-export function tasmOpen(add: Function, remove: Function) {
+export function tasmOpen(dispatch: Dispatch<UnknownAction>) {
     debugLog("Opening Turbo Assembler...");
 
-    add("tasm", React.createElement(Alert, {
+    const key = "tasm";
+
+    dispatch(openAlert({
+        key: key, 
+        value: React.createElement(Alert, {
         title: "Error",
         message: `
     Cannot find executable: 
@@ -14,17 +20,21 @@ export function tasmOpen(add: Function, remove: Function) {
         dimensions: { width: 32, height: 11 },
         buttonText: "OK",
         buttonHotkey: 1,
-        closeCallback: () => { remove("tasm") },
-        buttonCallback: () => { remove("tasm") },
-        key: "tasm"
-    }));
+        closeCallback: () => { dispatch(closeAlert(key)) },
+        buttonCallback: () => { dispatch(closeAlert(key)) },
+        key: key
+    })}));
 }
 
 
-export function tdOpen(add: Function, remove: Function) {
+export function tdOpen(dispatch: Dispatch<UnknownAction>) {
     debugLog("Opening Turbo Debugger...");
 
-    add("td", React.createElement(Alert, {
+    const key = "td";
+
+    dispatch(openAlert({
+        key: key, 
+        value: React.createElement(Alert, {
         title: "Error",
         message: `
     Cannot find executable: 
@@ -33,17 +43,21 @@ export function tdOpen(add: Function, remove: Function) {
         dimensions: { width: 32, height: 11 },
         buttonText: "OK",
         buttonHotkey: 1,
-        closeCallback: () => { remove("td") },
-        buttonCallback: () => { remove("td") },
-        key: "td"
-    }));
+        closeCallback: () => { dispatch(closeAlert(key)) },
+        buttonCallback: () => { dispatch(closeAlert(key)) },
+        key: key
+    })}));
 }
 
 
-export function tpOpen(add: Function, remove: Function) {
+export function tpOpen(dispatch: Dispatch<UnknownAction>) {
     debugLog("Opening Turbo Profiler...");
 
-    add("tp", React.createElement(Alert, {
+    const key = "tp";
+
+    dispatch(openAlert({
+        key: key, 
+        value: React.createElement(Alert, {
         title: "Error",
         message: `
     Cannot find executable: 
@@ -52,8 +66,8 @@ export function tpOpen(add: Function, remove: Function) {
         dimensions: { width: 32, height: 11 },
         buttonText: "OK",
         buttonHotkey: 1,
-        closeCallback: () => { remove("tp") },
-        buttonCallback: () => { remove("tp") },
-        key: "tp"
-    }));
+        closeCallback: () => { dispatch(closeAlert(key)) },
+        buttonCallback: () => { dispatch(closeAlert(key)) },
+        key: key
+    })}));
 }

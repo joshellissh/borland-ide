@@ -1,13 +1,13 @@
 import {JSX} from "react";
-import {Text} from "../Text/Text.tsx";
-import {Dimensions} from "../../types.ts";
+import {Text} from "../../Text/Text.tsx";
+import {Dimensions} from "../../../types.ts";
 
 function setCharAt(str: string, index: number, char: string) {
     if(index > str.length-1) return str;
     return str.substring(0,index) + char + str.substring(index+1);
 }
 
-function topBottomDecorations(dimensions: Dimensions, moving: boolean): Map<number, string> {
+function topBottomDecorations(top: boolean, dimensions: Dimensions, moving: boolean): Map<number, string> {
     const decorations = new Map<number, string>();
 
     if (moving) {
@@ -15,7 +15,7 @@ function topBottomDecorations(dimensions: Dimensions, moving: boolean): Map<numb
             decorations.set(i, "color: #89fa6e;");
         }
     } else {
-        decorations.set(3, "color: #89fa6e;");
+        if (top) { decorations.set(3, "color: #89fa6e;"); }
     }
 
     return decorations;
@@ -120,7 +120,7 @@ export function drawBorders(
     elements.push(<Text
         bX={0}
         bY={0}
-        decorations={topBottomDecorations(dimensions, moving)}
+        decorations={topBottomDecorations(true, dimensions, moving)}
         key={"topBorder"}
     >{topBorder(dimensions, title, moving)}</Text>);
 
@@ -131,7 +131,7 @@ export function drawBorders(
         bX={0}
         bY={dimensions.height - 1}
         key="bottomBorder"
-        decorations={topBottomDecorations(dimensions, moving)}
+        decorations={topBottomDecorations(false, dimensions, moving)}
     >{bottomBorder(dimensions.width, moving)}</Text>)
 
     return elements;

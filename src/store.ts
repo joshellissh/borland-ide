@@ -3,18 +3,18 @@ import documentsReducer from "./components/Documents/documentsSlice"
 import cursorReducer from "./components/Cursor/cursorSlice"
 import appReducer from "./appSlice"
 import topBarReducer from "./components/TopBar/topBarSlice"
+import alertReducer from "./components/Alerts/alertsSlice"
 import {enableMapSet} from "immer";
 
 const defaultMiddlewareConfig = {
-    serializableCheck: {
-        ignoredPaths: ["documents.documents"],
-    }
+    serializableCheck: false
 };
 
 enableMapSet();
 
 export const store = configureStore({
     reducer: {
+        alerts: alertReducer,
         app: appReducer,
         cursor: cursorReducer,
         documents: documentsReducer,

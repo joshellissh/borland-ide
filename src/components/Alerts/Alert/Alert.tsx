@@ -1,11 +1,11 @@
 import { CSSProperties, useEffect, useRef, useState } from "react";
-import { selectBlockSize, selectCols, selectRows } from "../../appSlice";
-import { useAppSelector } from "../../hooks";
-import { Dimensions, XY } from "../../types";
+import { selectBlockSize, selectCols, selectRows } from "../../../appSlice";
+import { useAppSelector } from "../../../hooks";
+import { Dimensions, XY } from "../../../types";
 import "./Alert.css";
 import { drawBorders } from "./borders";
-import { Text } from "../Text/Text";
-import { debugLog } from "../../logger";
+import { Text } from "../../Text/Text";
+import { debugLog } from "../../../logger";
 
 export interface AlertProps {
     title: string;

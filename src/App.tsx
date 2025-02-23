@@ -16,6 +16,8 @@ import {
   setLeftOffset
 } from "./appSlice.ts";
 import { selectActiveMenu, setActiveMenu } from './components/TopBar/topBarSlice.ts';
+import { Alerts } from './components/Alerts/Alerts.tsx';
+import { aboutOpen } from './components/TopBar/menuHandlers/helpMenu.ts';
 
 function App() {
   const drawGrid = false;
@@ -97,6 +99,9 @@ function App() {
       }
     }
 
+    // Show about alert
+    aboutOpen(dispatch);
+
     return () => {
       window.removeEventListener('resize', handleResize);
     };
@@ -118,6 +123,7 @@ function App() {
       <TopBar />
       <BottomBar cols={cols} rows={rows} />
       <Documents />
+      <Alerts />
       <Cursor />
     </div>
   )

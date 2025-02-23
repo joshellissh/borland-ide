@@ -2,6 +2,7 @@ import {createSlice, PayloadAction} from '@reduxjs/toolkit'
 import {DocumentInfo} from "../../types.ts";
 import {RootState} from "../../store.ts";
 
+
 export interface DocumentsState {
     active: number;
     documentNumber: number;

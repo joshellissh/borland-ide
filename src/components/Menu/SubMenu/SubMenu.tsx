@@ -121,6 +121,14 @@ export default function SubMenu({left, top, width, height, entries}: SubMenuProp
             dispatch(activateRightMenu());
         } else if (code == "Escape") {
             dispatch(setActiveMenu(-1));
+        } else if (code == "Enter") {
+            // Call action handler for submenu item
+            if ((entries[selection] as SubMenuEntry).action != undefined) {
+                // @ts-expect-error @ts-ignore
+                (entries[selection] as SubMenuEntry).action();
+            }
+
+            dispatch(setActiveMenu(-1));
         }
     }
 

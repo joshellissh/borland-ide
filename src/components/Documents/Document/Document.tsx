@@ -1,7 +1,6 @@
 import {XY} from "../../../types.ts";
 import "./Document.css"
 import {useEffect, useRef, useState} from "react";
-import {Caret} from "../../Caret/Caret.tsx";
 import {useAppSelector} from "../../../hooks.ts";
 import {selectBlockSize, selectCols, selectRows} from "../../../appSlice.ts";
 import {drawBorders} from "./borders.tsx";
@@ -14,9 +13,9 @@ import {
     setActiveDocument,
     updateDocument
 } from "../documentsSlice.ts";
-import {constrain} from "../../../math.ts";
 import { getHighestDocument, getHighestDocumentIndex } from "./tools.ts";
 import { selectActiveMenu, setActiveMenu } from "../../TopBar/topBarSlice.ts";
+import { TextEdit } from "../../TextEdit/TextEdit.tsx";
 
 interface DocumentProps {
     id: number;
@@ -28,8 +27,6 @@ export function Document({id}: DocumentProps) {
     const blockSize = useAppSelector(selectBlockSize);
     const appCols = useAppSelector(selectCols);
     const appRows = useAppSelector(selectRows);
-    const [caretPos, setCaretPos] = useState({x:0, y:0});
-    const [caretVisible, ] = useState(true);
     const dispatch = useDispatch();
     const activeDoc = useAppSelector(selectActive);
     const documents = useAppSelector(selectDocuments);
@@ -45,6 +42,7 @@ export function Document({id}: DocumentProps) {
     const resizeAnchor = useRef<XY>({x:0, y:0});
     const dragController = useRef<AbortController>(new AbortController());
     const [, setBorderRedraw] = useState(0);
+    const [caretPos, setCaretPos] = useState({x: 1, y: 1});
 
     // This prevents our component from rerendering when the mouse moves
     // But still allows us access to the cursor position
@@ -95,14 +93,6 @@ export function Document({id}: DocumentProps) {
             }
             return;
         }
-
-        const constrainedPosX = constrain(cursorPosRef.current.x - left, 1, docWidth - 2);
-        const constrainedPosY = constrain(cursorPosRef.current.y - top, 1, docHeight - 2);
-
-        setCaretPos({
-            x: constrainedPosX,
-            y: constrainedPosY,
-        });
 
         // Prevent click from propagating to App
         event.stopPropagation();
@@ -300,17 +290,13 @@ export function Document({id}: DocumentProps) {
         const highestIndex = getHighestDocumentIndex();
         document.getElementById("document" + id)!.style.zIndex = String(highestIndex + 1);
         dispatch(setActiveDocument(id!));
+
+        document.getElementById("TextEdit" + id)?.focus();
     }
 
 
     useEffect(() => {
         debugLog("useEffect called in Document");
-
-        // Set initial caret position to 1,1 in document
-        setCaretPos({
-           x: 1,
-           y: 1
-        });
 
         // New window with no size set
         if (doc.size!.width == -1 && doc.size!.height == -1) {
@@ -335,6 +321,9 @@ export function Document({id}: DocumentProps) {
             const highestDoc = getHighestDocumentIndex();
             document.getElementById("document" + id)!.style.zIndex = String(highestDoc + 1);
         }
+
+        // Focus on editor
+        document.getElementById("TextEdit" + id)?.focus();
     }, []);
 
 
@@ -345,6 +334,7 @@ export function Document({id}: DocumentProps) {
             left: blockSize.width * left,
             top: blockSize.height * top,
             zIndex: 0,
+            overflow: "hidden"
         }}
         className="bg-blue Document"
         id={"document" + id}
@@ -365,11 +355,15 @@ export function Document({id}: DocumentProps) {
             <div style={{
                 position: "relative",
                 left: blockSize.width,
-                top: blockSize.height
+                top: blockSize.height,
+                width: blockSize.width * (docWidth - 2),
+                height: blockSize.height * (docHeight - 2),
+                border: "solid 1px green",
+                overflow: "hidden"
             }}
             >
+                <TextEdit width={1024} id={id} caretCallback={setCaretPos}/>
             </div>
-            {caretVisible && activeDoc == id && <Caret pos={caretPos} />}
         </div>
     );
 }

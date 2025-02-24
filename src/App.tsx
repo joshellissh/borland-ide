@@ -100,7 +100,7 @@ function App() {
     }
 
     // Show about alert
-    aboutOpen(dispatch);
+    // aboutOpen(dispatch);
 
     return () => {
       window.removeEventListener('resize', handleResize);

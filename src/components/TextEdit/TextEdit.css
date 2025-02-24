@@ -1,0 +1,5 @@
+.TextEdit {
+    /* pointer-events: none; */
+    outline: none;
+    border: solid 1px red
+}

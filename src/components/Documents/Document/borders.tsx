@@ -208,7 +208,7 @@ function bottomBorder(cols: number, caretPos: XY, active: boolean, moving: boole
         str += caretPos.y + ":" + caretPos.x;
         str += " ";
     } else {
-        str += "──────";
+        str += "─────";
     }
 
     // Set right border

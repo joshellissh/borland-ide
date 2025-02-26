@@ -16,6 +16,7 @@ import {
 import { getHighestDocument, getHighestDocumentIndex } from "./tools.ts";
 import { selectActiveMenu, setActiveMenu } from "../../TopBar/topBarSlice.ts";
 import { TextEdit } from "../../TextEdit/TextEdit.tsx";
+import { ScrollBar } from "../../ScrollBar/ScrollBar.tsx";
 
 interface DocumentProps {
     id: number;
@@ -43,6 +44,9 @@ export function Document({id}: DocumentProps) {
     const dragController = useRef<AbortController>(new AbortController());
     const [, setBorderRedraw] = useState(0);
     const [caretPos, setCaretPos] = useState({x: 1, y: 1});
+    const [scrollHorizontal, setScrollHorizontal] = useState(0);
+    const [scrollVertical, setScrollVertical] = useState(0);
+
 
     // This prevents our component from rerendering when the mouse moves
     // But still allows us access to the cursor position
@@ -288,10 +292,21 @@ export function Document({id}: DocumentProps) {
         debugLog("Focus on " + id);
 
         const highestIndex = getHighestDocumentIndex();
+
+        if (highestIndex == id) { return; }
+
         document.getElementById("document" + id)!.style.zIndex = String(highestIndex + 1);
         dispatch(setActiveDocument(id!));
 
         document.getElementById("TextEdit" + id)?.focus();
+    }
+
+
+    function handleScroll(direction: string, scrollPercent: number) {
+        debugLog("Scroll " + direction + " " + scrollPercent);
+
+        if (direction == "horizontal") { setScrollHorizontal(scrollPercent * -1024); }
+        else if (direction == "vertical") { setScrollVertical(scrollPercent * -1024); }
     }
 
 
@@ -358,12 +373,38 @@ export function Document({id}: DocumentProps) {
                 top: blockSize.height,
                 width: blockSize.width * (docWidth - 2),
                 height: blockSize.height * (docHeight - 2),
-                border: "solid 1px green",
                 overflow: "hidden"
-            }}
-            >
-                <TextEdit width={1024} id={id} caretCallback={setCaretPos}/>
+            }}>
+                <TextEdit width={1024} id={id} caretCallback={setCaretPos}
+                    style={{
+                        position: "relative",
+                        left: blockSize.width * scrollHorizontal,
+                        top: blockSize.height * scrollVertical,
+                    }}
+                />
             </div>
+            <ScrollBar 
+                width={docWidth - 20} 
+                height={1} 
+                range={1024}
+                left={18}
+                top={1}
+                scrollCallback={handleScroll}
+                docLeft={left}
+                docTop={top}
+            />
+            <ScrollBar 
+                width={1} 
+                height={docHeight - 2} 
+                range={1024}
+                left={docWidth - 1}
+                top={1}
+                scrollCallback={handleScroll}
+                orientation="vertical"
+                cssPosition="absolute"
+                docLeft={left}
+                docTop={top}
+            />
         </div>
     );
 }

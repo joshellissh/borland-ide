@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { CSSProperties, useState } from "react";
 import { selectBlockSize } from "../../appSlice";
 import { useAppSelector } from "../../hooks";
 import { Text } from "../Text/Text";
@@ -6,14 +6,17 @@ import "./TextEdit.css"
 import { Caret } from "../Caret/Caret";
 import { debugLog } from "../../logger";
 
+
 export interface TextEditProps {
     id: number;
     width: number;
     height?: number;
     caretCallback: Function;
+    style?: CSSProperties;
 }
 
-export function TextEdit({id, width, height, caretCallback}: TextEditProps) {
+
+export function TextEdit({id, width, height, caretCallback, style}: TextEditProps) {
     const blockSize = useAppSelector(selectBlockSize);
     const [lines, setLines] = useState(["Test", "Text"]);
     const [caretPos, setCaretPos] = useState({x: 0, y: 0});
@@ -29,12 +32,12 @@ export function TextEdit({id, width, height, caretCallback}: TextEditProps) {
     }
 
     
-    function handleKeyDown(code: string, key: string, keyCode: number) {
+    function handleKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
         const newPos = { x: caretPos.x, y: caretPos.y };
 
-        debugLog(code);
+        debugLog(event.code);
 
-        switch (code) {
+        switch (event.code) {
             case "ArrowLeft":
                 if (caretPos.x > 0) { newPos.x--; }
                 break;
@@ -185,10 +188,24 @@ export function TextEdit({id, width, height, caretCallback}: TextEditProps) {
                     setLines(newLines);
                 }
                 break;
+            case "Tab":
+                {
+                    const newLines = [...lines];
+
+                    // Insert *8* spaces. Wacky.
+                    newLines[caretPos.y] = newLines[caretPos.y].slice(0, caretPos.x) + '        ' + newLines[caretPos.y].slice(caretPos.x);
+                    newPos.x += 8;
+
+                    setLines(newLines);
+
+                    // Prevent tab from propagating
+                    event.preventDefault();
+                }
+                break;
             default:
                 {
                     // Bail if a control character
-                    if (!isPrintable(keyCode)) {
+                    if (!isPrintable(event.keyCode)) {
                         return;
                     }
 
@@ -205,7 +222,7 @@ export function TextEdit({id, width, height, caretCallback}: TextEditProps) {
                         }
                     }
                     
-                    newLines[caretPos.y] = newLines[caretPos.y].slice(0, caretPos.x) + key + newLines[caretPos.y].slice(caretPos.x);
+                    newLines[caretPos.y] = newLines[caretPos.y].slice(0, caretPos.x) + event.key + newLines[caretPos.y].slice(caretPos.x);
                     setLines(newLines);
                     newPos.x++;
                 }
@@ -238,10 +255,11 @@ export function TextEdit({id, width, height, caretCallback}: TextEditProps) {
     return (<div
         className="TextEdit"
         id={"TextEdit" + id}
-        onKeyDown={(event) => handleKeyDown(event.code, event.key, event.keyCode)}
+        onKeyDown={(event) => handleKeyDown(event)}
         tabIndex={0}
+        style={style}
     >
         <Text bX={0} bY={0} passthru={true} position="relative">{drawContents()}</Text> 
-        <Caret pos={caretPos} />       
+        <Caret pos={caretPos} />
     </div>);
 }

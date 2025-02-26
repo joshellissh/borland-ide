@@ -128,59 +128,6 @@ function leftBorder(rows: number, active: boolean, moving: boolean): JSX.Element
     return elements;
 }
 
-function rightBorder(cols: number, rows: number, active: boolean, moving: boolean): JSX.Element[] {
-    const elements = [];
-
-    if (active && !moving) {
-        elements.push(<Text
-            bX={cols - 1}
-            bY={1}
-            key="rightBorder0"
-            decorations={new Map([
-                [0, "background-color: #4ba7a9;color:#000fa3;"]
-            ])}
-        ></Text>);
-        elements.push(<Text
-            bX={cols - 1}
-            bY={2}
-            key="rightBorder1"
-            decorations={new Map([
-                [0, "background-color: #4ba7a9;color:#000fa3;"]
-            ])}
-        >■</Text>);
-
-        for (let i = 3; i < rows - 2; i++) {
-            elements.push(<Text
-                bX={cols - 1}
-                bY={i}
-                key={"rightBorder" + i}
-                decorations={new Map([
-                    [0, "background-color: #000fa3;color:#4ba7a9;"]
-                ])}
-            >▒</Text>);
-        }
-
-        elements.push(<Text
-            bX={cols - 1}
-            bY={rows - 2}
-            key="rightBorderEnd"
-            decorations={new Map([
-                [0, "background-color: #4ba7a9;color:#000fa3;"]
-            ])}
-        ></Text>);
-    } else {
-        for (let i = 1; i < rows - 1; i++) {
-            elements.push(<Text
-                bX={cols - 1}
-                bY={i}
-                key={"rightBorder" + i}
-                decorations={!active ? new Map([[0, "color: #aaaaaa;"]]) : new Map([[0, "color: #89fa6e;"]])}
-            >│</Text>);
-        }
-    }
-
-    return elements;
-}
 
 function bottomBorder(cols: number, caretPos: XY, active: boolean, moving: boolean): string {
     let str = "";
@@ -221,21 +168,21 @@ function bottomBorder(cols: number, caretPos: XY, active: boolean, moving: boole
     }
 
     if (active && !moving) {
-        str += "■";
+        str += "  ";
     } else {
         str += "──";
     }
 
     for (let i = 21; i < cols - 2; i++) {
         if (active && !moving) {
-            str += "▒";
+            str += " ";
         } else {
             str += "─";
         }
     }
 
     if (active && !moving) {
-        str += "─┘";
+        str += " ─┘";
     } else {
         str += "──┘";
     }
@@ -248,9 +195,6 @@ function bottomBorderDecorations(cols: number, active: boolean, moving: boolean)
 
     if (active && !moving) {
         decMap = new Map<number, string>([
-            [18, "background-color: #4ba7a9;color:#000fa3;"],
-            [19, "background-color: #4ba7a9;color:#000fa3;"],
-            [cols - 3, "background-color: #4ba7a9;color:#000fa3;"],
             [cols - 2, "background-color: #000fa3;color:#4ba7a9;"],
             [cols - 1, "background-color: #000fa3;color:#4ba7a9;"],
         ]);
@@ -285,7 +229,6 @@ export function drawBorders(
     >{topBorder(cols, docInfo, active, moving)}</Text>);
 
     elements.push(...leftBorder(rows, active, moving));
-    elements.push(...rightBorder(cols, rows, active, moving));
 
     elements.push(<Text
         bX={0}

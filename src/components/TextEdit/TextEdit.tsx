@@ -1,6 +1,4 @@
 import { CSSProperties, useState } from "react";
-import { selectBlockSize } from "../../appSlice";
-import { useAppSelector } from "../../hooks";
 import { Text } from "../Text/Text";
 import "./TextEdit.css"
 import { Caret } from "../Caret/Caret";
@@ -16,8 +14,7 @@ export interface TextEditProps {
 }
 
 
-export function TextEdit({id, width, height, caretCallback, style}: TextEditProps) {
-    const blockSize = useAppSelector(selectBlockSize);
+export function TextEdit({id, width, height = 1024, caretCallback, style}: TextEditProps) {
     const [lines, setLines] = useState(["Test", "Text"]);
     const [caretPos, setCaretPos] = useState({x: 0, y: 0});
 
@@ -42,14 +39,14 @@ export function TextEdit({id, width, height, caretCallback, style}: TextEditProp
                 if (caretPos.x > 0) { newPos.x--; }
                 break;
             case "ArrowRight":
-                if (caretPos.x < 1023) { newPos.x++; }
+                if (caretPos.x < width - 1) { newPos.x++; }
                 break;
             case "ArrowUp":
                 if (caretPos.y > 0) { newPos.y--; }
                 break;
             case "ArrowDown":
                 {
-                    if (caretPos.y < 1023) { newPos.y++; }
+                    if (caretPos.y < height - 1) { newPos.y++; }
 
                     // Prevent Y cursor from going below our number of lines
                     if (newPos.y > lines.length - 1) { newPos.y = lines.length - 1; }

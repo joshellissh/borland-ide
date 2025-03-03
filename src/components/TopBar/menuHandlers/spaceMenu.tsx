@@ -1,4 +1,4 @@
-import React, { Dispatch } from "react";
+import { Dispatch } from "react";
 import { debugLog } from "../../../logger";
 import { UnknownAction } from "@reduxjs/toolkit";
 import { closeWindow, openWindow } from "../../Windows/Windows";

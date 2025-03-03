@@ -1,7 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { RootState } from "../../store";
 import { ReactElement } from "react";
-import { debugLog } from "../../logger";
 
 export interface WindowsState {
     map: Map<string, ReactElement>;

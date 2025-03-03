@@ -13,6 +13,7 @@ export interface WindowProps {
     center?: boolean;
     contents: ReactNode;
     closeCallback?: Function;
+    closeOnEscape?: boolean;
     dimensions: Dimensions;
     focusElement?: string;
     initialPosition?: XY;
@@ -27,6 +28,7 @@ export function Window({
     border = true,
     center = false,
     closeCallback,
+    closeOnEscape = true,
     dimensions,
     focusElement,
     modal = false,
@@ -90,7 +92,7 @@ export function Window({
 
 
     function handleKeyDown(code: string) {
-        if (code === "Escape") {
+        if (code === "Escape" && closeOnEscape) {
             if (closeCallback !== undefined) { closeCallback(); }
             
             dispatch(windowClose(name));

@@ -48,7 +48,14 @@ body {
 .font-red {
     color: #a40604;
 }
+
 @font-face {
     font-family: "More Perfect DOS";
     src: url("/borland-ide/MorePerfectDOSVGA.ttf");
+}
+
+a {
+    text-decoration: none;
+    color: yellow;
+    cursor: none;
 }

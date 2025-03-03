@@ -186,7 +186,7 @@ export function ScrollBar({cssPosition = "relative", orientation = "horizontal",
     useEffect(() => {
         debugLog("Redrawing scrollbar");
     }, [width, height]);
-
+    
 
     if (orientation == "horizontal") {
         return (

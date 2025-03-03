@@ -17,8 +17,7 @@ export function aboutOpen(dispatch: Dispatch<UnknownAction>) {
     Copyright (c) 1990, 1992 by
     Borland International, Inc.
 
-      Web port by Josh Ellis
-  https://github.com/joshellissh`;
+      Web port by Josh Ellis`;
 
     openWindow(dispatch, {
         center: true,
@@ -29,6 +28,7 @@ export function aboutOpen(dispatch: Dispatch<UnknownAction>) {
         title: "About",
         contents: (<>
             <Text bX={0} bY={0} position="relative">{message}</Text>
+            <a href="https://github.com/joshellissh" target="_blank"><Text bX={2} bY={0} position="relative">https://github.com/joshellissh</Text></a>
             <Button callback={() => closeWindow(dispatch, name)} text="OK" hotkeyIndex={1} center={true} id="aboutOk" />
         </>
     )});

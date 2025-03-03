@@ -84,7 +84,7 @@ export function Button({
 
 
     function keyDown(code: string, key: string) {
-        if (code === "Enter" || code === "NumpadEnter") {
+        if (code === "Enter" || code === "NumpadEnter" || code === "Space") {
             callback();
         } else if (hotkeyIndex !== undefined && key.toLowerCase() == text.at(hotkeyIndex)!.toLowerCase()) {
             callback();

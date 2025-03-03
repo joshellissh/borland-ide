@@ -16,8 +16,9 @@ import {
   setLeftOffset
 } from "./appSlice.ts";
 import { selectActiveMenu, setActiveMenu } from './components/TopBar/topBarSlice.ts';
-import { Alerts } from './components/Alerts/Alerts.tsx';
-import { aboutOpen } from './components/TopBar/menuHandlers/helpMenu.ts';
+import { aboutOpen } from './components/TopBar/menuHandlers/helpMenu.tsx';
+import { Windows } from './components/Windows/Windows.tsx';
+
 
 function App() {
   const drawGrid = false;
@@ -123,7 +124,7 @@ function App() {
       <TopBar />
       <BottomBar cols={cols} rows={rows} />
       <Documents />
-      <Alerts />
+      <Windows />
       <Cursor />
     </div>
   )

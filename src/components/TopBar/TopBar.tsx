@@ -9,8 +9,8 @@ import {debugLog} from "../../logger.ts";
 import {selectActiveMenu, setActiveMenu} from "./topBarSlice.ts";
 import {newDocument} from "../Documents/documentsSlice.ts";
 import {useDispatch} from "react-redux";
-import { tasmOpen, tdOpen, tpOpen } from "./menuHandlers/spaceMenu.ts";
-import { aboutOpen } from "./menuHandlers/helpMenu.ts";
+import { tasmOpen, tdOpen, tpOpen } from "./menuHandlers/spaceMenu.tsx";
+import { aboutOpen } from "./menuHandlers/helpMenu.tsx";
 
 
 

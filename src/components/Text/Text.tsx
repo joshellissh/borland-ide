@@ -4,14 +4,14 @@ import {selectBlockSize} from "../../appSlice.ts";
 import {PropsWithChildren} from "react";
 
 interface TextProps {
-    bX: number;
-    bY: number;
+    bX?: number;
+    bY?: number;
     decorations?: Map<number, string>;
     position?: "absolute" | "relative";
     passthru?: boolean;
 }
 
-export function Text({bX, bY, decorations, position = "absolute", passthru = false, children}: PropsWithChildren<TextProps>) {
+export function Text({bX = 0, bY = 0, decorations, position = "absolute", passthru = false, children}: PropsWithChildren<TextProps>) {
     const blockSize = useAppSelector(selectBlockSize);
 
     // Make sure children is only a string

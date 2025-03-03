@@ -10,11 +10,12 @@ export interface TextEditProps {
     width: number;
     height?: number;
     caretCallback: Function;
+    showCaret?: boolean;
     style?: CSSProperties;
 }
 
 
-export function TextEdit({id, width, height = 1024, caretCallback, style}: TextEditProps) {
+export function TextEdit({id, width, height = 1024, caretCallback, style, showCaret = true}: TextEditProps) {
     const [lines, setLines] = useState(["Test", "Text"]);
     const [caretPos, setCaretPos] = useState({x: 0, y: 0});
 
@@ -257,6 +258,6 @@ export function TextEdit({id, width, height = 1024, caretCallback, style}: TextE
         style={style}
     >
         <Text bX={0} bY={0} passthru={true} position="relative">{drawContents()}</Text> 
-        <Caret pos={caretPos} />
+        <Caret pos={caretPos} show={showCaret} />
     </div>);
 }

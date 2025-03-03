@@ -1,0 +1,9 @@
+.Button {
+    color: black;
+    outline: none;
+}
+
+.ButtonCenter {
+    margin-left: auto;
+    margin-right: auto;
+}

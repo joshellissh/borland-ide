@@ -3,7 +3,7 @@ import documentsReducer from "./components/Documents/documentsSlice"
 import cursorReducer from "./components/Cursor/cursorSlice"
 import appReducer from "./appSlice"
 import topBarReducer from "./components/TopBar/topBarSlice"
-import alertReducer from "./components/Alerts/alertsSlice"
+import windowReducer from "./components/Windows/windowsSlice"
 import {enableMapSet} from "immer";
 
 const defaultMiddlewareConfig = {
@@ -14,11 +14,11 @@ enableMapSet();
 
 export const store = configureStore({
     reducer: {
-        alerts: alertReducer,
         app: appReducer,
         cursor: cursorReducer,
         documents: documentsReducer,
-        topBar: topBarReducer
+        topBar: topBarReducer,
+        windows: windowReducer
     },
     middleware: (getDefaultMiddleware) =>
         getDefaultMiddleware(defaultMiddlewareConfig),

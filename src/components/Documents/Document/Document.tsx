@@ -46,6 +46,7 @@ export function Document({id}: DocumentProps) {
     const [caretPos, setCaretPos] = useState({x: 1, y: 1});
     const [scrollHorizontal, setScrollHorizontal] = useState(0);
     const [scrollVertical, setScrollVertical] = useState(0);
+    const [showCaret, setShowCaret] = useState(true);
 
 
     // This prevents our component from rerendering when the mouse moves
@@ -66,42 +67,6 @@ export function Document({id}: DocumentProps) {
     const top = doc.position!.y;
     const docWidth = doc.size!.width;
     const docHeight = doc.size!.height;
-
-
-    function handleClick(event: React.MouseEvent<HTMLDivElement, MouseEvent>) {
-        // Don't do anything if we're not the active doc
-        if (activeDoc != id) {
-            return;
-        }
-
-        const cx = cursorPosRef.current.x;
-        const cy = cursorPosRef.current.y;
-
-        if (docWidth - (cx - left) <= 5 &&  docWidth - (cx - left) >= 3 && cy - top == 0) {
-            if (!doc.maximized) {
-                debugLog("Maximizing document " + id);
-                dispatch(updateDocument({
-                    id: id, 
-                    maximized: true, 
-                    nonMaxSize:  doc.size, 
-                    nonMaxPosition: doc.position, 
-                    size: {width: appCols, height: appRows - 2}, 
-                    position: {x: 0, y: 1}}));
-            } else {
-                debugLog("Restoring document " + id);
-                dispatch(updateDocument({
-                    id: id, 
-                    maximized: false, 
-                    size: doc.nonMaxSize, 
-                    position: doc.nonMaxPosition}));
-            }
-            return;
-        }
-
-        // Prevent click from propagating to App
-        event.stopPropagation();
-        event.nativeEvent.stopImmediatePropagation();
-    }
 
 
     function dragHandler() {
@@ -226,7 +191,26 @@ export function Document({id}: DocumentProps) {
         } 
         // Max/restore button
         else if (docWidth - (cx - left) <= 5 &&  docWidth - (cx - left) >= 3 && cy - top == 0) {
-            return;
+            if (docWidth - (cx - left) <= 5 &&  docWidth - (cx - left) >= 3 && cy - top == 0) {
+                if (!doc.maximized) {
+                    debugLog("Maximizing document " + id);
+                    dispatch(updateDocument({
+                        id: id, 
+                        maximized: true, 
+                        nonMaxSize:  doc.size, 
+                        nonMaxPosition: doc.position, 
+                        size: {width: appCols, height: appRows - 2}, 
+                        position: {x: 0, y: 1}}));
+                } else {
+                    debugLog("Restoring document " + id);
+                    dispatch(updateDocument({
+                        id: id, 
+                        maximized: false, 
+                        size: doc.nonMaxSize, 
+                        position: doc.nonMaxPosition}));
+                }
+                return;
+            }
         } 
         // Top border, move window
         else if (cy - top == 0 && cx - left >= 1 && cx - left < docWidth - 1) {
@@ -291,6 +275,8 @@ export function Document({id}: DocumentProps) {
     function handleFocus() {
         debugLog("Focus on " + id);
 
+        setShowCaret(true);
+
         const highestIndex = getHighestDocumentIndex();
 
         if (highestIndex == id) { return; }
@@ -299,6 +285,13 @@ export function Document({id}: DocumentProps) {
         dispatch(setActiveDocument(id!));
 
         document.getElementById("TextEdit" + id)?.focus();
+    }
+
+
+    function handleBlur() {
+        debugLog("Blur on " + id);
+
+        setShowCaret(false);
     }
 
 
@@ -355,9 +348,9 @@ export function Document({id}: DocumentProps) {
         id={"document" + id}
         onMouseDown={handleMouseDown}
         onMouseUp={handleMouseUp}
-        onClick={handleClick}
         tabIndex={-1}
         onFocus={handleFocus}
+        onBlur={handleBlur}
         >
             {drawBorders(
                 docWidth,
@@ -375,7 +368,7 @@ export function Document({id}: DocumentProps) {
                 height: blockSize.height * (docHeight - 2),
                 overflow: "hidden"
             }}>
-                <TextEdit width={1024} id={id} caretCallback={setCaretPos}
+                <TextEdit width={1024} id={id} caretCallback={setCaretPos} showCaret={showCaret}
                     style={{
                         position: "relative",
                         left: blockSize.width * scrollHorizontal,

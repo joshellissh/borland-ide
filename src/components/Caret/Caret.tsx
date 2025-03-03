@@ -6,10 +6,11 @@ import {selectBlockSize} from "../../appSlice.ts";
 import {debugLog} from "../../logger.ts";
 
 interface CaretProps {
+    show?: boolean;
     pos: XY;
 }
 
-export function Caret({pos}: CaretProps) {
+export function Caret({pos, show = true}: CaretProps) {
     const [visible, setVisible] = useState(false);
     const blockSize = useAppSelector(selectBlockSize);
 
@@ -37,7 +38,7 @@ export function Caret({pos}: CaretProps) {
             left: pos.x * blockSize.width,
             top: pos.y * blockSize.height,
             overflow: "hidden",
-            visibility: visible ? "visible" : "hidden"
+            visibility: visible ? "visible" : "hidden",
         }}
-    >_</div>;
+    >{ show ? "_" : "" }</div>;
 }

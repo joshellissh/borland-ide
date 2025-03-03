@@ -33,7 +33,7 @@ function topBorder(dimensions: Dimensions, title: string, moving: boolean): stri
         else { str += "═"; }
     }
 
-    if (!moving) {
+    if (!moving && title != "") {
         const adjustedWidth = dimensions.width - 3;
         for (
             let i = Math.floor(adjustedWidth / 2) - Math.floor(title.length / 2),
